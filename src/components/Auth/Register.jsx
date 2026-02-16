@@ -4,6 +4,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/config';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { getUserRole } from '../../utils/adminConfig';
 import './Auth.css';
 
 const Register = () => {
@@ -60,6 +61,7 @@ const Register = () => {
       await setDoc(doc(db, 'users', userCredential.user.uid), {
         name: formData.name,
         email: formData.email,
+        role: getUserRole(formData.email),
         score: 0,
         level: 'Beginner',
         badges: [],
@@ -107,6 +109,7 @@ const Register = () => {
         await setDoc(doc(db, 'users', result.user.uid), {
           name: result.user.displayName || 'User',
           email: result.user.email,
+          role: getUserRole(result.user.email),
           score: 0,
           level: 'Beginner',
           badges: [],
@@ -117,6 +120,15 @@ const Register = () => {
           totalQuizScore: 0,
           createdAt: new Date().toISOString()
         });
+      } else {
+        // User exists, check if role field exists
+        const userData = userDoc.data();
+        if (!userData.role) {
+          await setDoc(doc(db, 'users', result.user.uid), {
+            ...userData,
+            role: getUserRole(result.user.email)
+          }, { merge: true });
+        }
       }
       
       navigate('/dashboard');

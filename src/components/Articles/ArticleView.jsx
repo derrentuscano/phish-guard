@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getArticleById } from '../../data/articles';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { getArticleById as getLocalArticleById } from '../../data/articles';
 import { 
   ArrowLeft, 
   Clock, 
@@ -14,7 +16,47 @@ import './Articles.css';
 const ArticleView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const article = getArticleById(id);
+  const [article, setArticle] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchArticle();
+  }, [id]);
+
+  const fetchArticle = async () => {
+    try {
+      // Try to fetch from Firestore first
+      const articleDoc = await getDoc(doc(db, 'articles', id));
+      
+      if (articleDoc.exists()) {
+        setArticle({ id: articleDoc.id, ...articleDoc.data() });
+      } else {
+        // Fallback to local articles
+        const localArticle = getLocalArticleById(id);
+        setArticle(localArticle);
+      }
+    } catch (error) {
+      console.error('Error fetching article:', error);
+      // Fallback to local articles
+      const localArticle = getLocalArticleById(id);
+      setArticle(localArticle);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="article-view-container">
+        <div className="container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div className="spinner"></div>
+            <p style={{ marginTop: '20px', color: 'var(--text-secondary)' }}>Loading article...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!article) {
     return (

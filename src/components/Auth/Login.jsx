@@ -4,6 +4,7 @@ import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
 import { Shield, Mail, Lock, AlertCircle } from 'lucide-react';
+import { getUserRole } from '../../utils/adminConfig';
 import './Auth.css';
 
 const Login = () => {
@@ -21,7 +22,23 @@ const Login = () => {
     try {
       // Set persistence to keep user logged in
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Check if user document has role field, if not add it
+      const userDocRef = doc(db, 'users', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        // If role field doesn't exist, add it based on email
+        if (!userData.role) {
+          await setDoc(userDocRef, {
+            ...userData,
+            role: getUserRole(email)
+          }, { merge: true });
+        }
+      }
+      
       navigate('/dashboard');
     } catch (err) {
       switch (err.code) {
@@ -58,6 +75,7 @@ const Login = () => {
         await setDoc(doc(db, 'users', result.user.uid), {
           name: result.user.displayName || 'User',
           email: result.user.email,
+          role: getUserRole(result.user.email),
           score: 0,
           level: 'Beginner',
           badges: [],
@@ -68,6 +86,15 @@ const Login = () => {
           totalQuizScore: 0,
           createdAt: new Date().toISOString()
         });
+      } else {
+        // User exists, check if role field exists
+        const userData = userDoc.data();
+        if (!userData.role) {
+          await setDoc(doc(db, 'users', result.user.uid), {
+            ...userData,
+            role: getUserRole(result.user.email)
+          }, { merge: true });
+        }
       }
       
       navigate('/dashboard');

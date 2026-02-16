@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { articles, getCategories } from '../../data/articles';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/config';
+import { articles as localArticles, getCategories as getLocalCategories } from '../../data/articles';
 import { 
   BookOpen, 
   Clock, 
@@ -16,6 +18,41 @@ const Articles = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchArticles();
+  }, []);
+
+  const fetchArticles = async () => {
+    try {
+      const articlesRef = collection(db, 'articles');
+      const snapshot = await getDocs(articlesRef);
+      
+      if (snapshot.empty) {
+        // If no articles in Firestore, use local articles
+        setArticles(localArticles);
+      } else {
+        const articlesList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setArticles(articlesList);
+      }
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      // Fallback to local articles
+      setArticles(localArticles);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategories = () => {
+    const categories = [...new Set(articles.map(article => article.category))];
+    return categories.sort();
+  };
   
   const categories = ['All', ...getCategories()];
 
@@ -25,6 +62,19 @@ const Articles = () => {
     const matchesCategory = selectedCategory === 'All' || article.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <div className="articles-container fade-in">
+        <div className="container">
+          <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+            <div className="spinner"></div>
+            <p style={{ marginTop: '20px', color: 'var(--text-secondary)' }}>Loading articles...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="articles-container fade-in">
