@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase/config';
 import { Link, useNavigate } from 'react-router-dom';
@@ -42,6 +42,8 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Set persistence to keep user logged in
+      await setPersistence(auth, browserLocalPersistence);
       // Create user account
       const userCredential = await createUserWithEmailAndPassword(
         auth, 
@@ -62,6 +64,10 @@ const Register = () => {
         level: 'Beginner',
         badges: [],
         completedScenarios: [],
+        totalAttempts: 0,
+        correctAnswers: 0,
+        quizzesCompleted: 0,
+        totalQuizScore: 0,
         createdAt: new Date().toISOString()
       });
 
@@ -90,6 +96,8 @@ const Register = () => {
     setLoading(true);
 
     try {
+      // Set persistence to keep user logged in
+      await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
@@ -103,6 +111,10 @@ const Register = () => {
           level: 'Beginner',
           badges: [],
           completedScenarios: [],
+          totalAttempts: 0,
+          correctAnswers: 0,
+          quizzesCompleted: 0,
+          totalQuizScore: 0,
           createdAt: new Date().toISOString()
         });
       }

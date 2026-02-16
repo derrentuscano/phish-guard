@@ -59,13 +59,30 @@ const PhishingSimulation = ({ user }) => {
       const userDoc = await getDoc(userRef);
       const userData = userDoc.data();
 
-      // Update user stats
-      await updateDoc(userRef, {
+      // Calculate new score
+      const newScore = (userData.score || 0) + (isCorrect ? 10 : 0);
+
+      // Calculate level based on score
+      let newLevel = 'Beginner';
+      if (newScore >= 500) newLevel = 'Master';
+      else if (newScore >= 300) newLevel = 'Expert';
+      else if (newScore >= 150) newLevel = 'Advanced';
+      else if (newScore >= 50) newLevel = 'Intermediate';
+
+      // Update user stats with proper increment
+      const updateData = {
         totalAttempts: increment(1),
-        correctAnswers: isCorrect ? increment(1) : (userData.correctAnswers || 0),
-        score: isCorrect ? increment(10) : (userData.score || 0),
-        completedScenarios: arrayUnion(scenario.id)
-      });
+        completedScenarios: arrayUnion(scenario.id),
+        level: newLevel
+      };
+
+      // Only increment score and correct answers if answer is correct
+      if (isCorrect) {
+        updateData.correctAnswers = increment(1);
+        updateData.score = increment(10);
+      }
+
+      await updateDoc(userRef, updateData);
 
       // Award badges based on milestones
       const newCorrect = (userData.correctAnswers || 0) + (isCorrect ? 1 : 0);

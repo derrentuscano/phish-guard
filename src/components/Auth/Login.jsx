@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { auth, db } from '../../firebase/config';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { Link, useNavigate } from 'react-router-dom';
@@ -19,6 +19,8 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Set persistence to keep user logged in
+      await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/dashboard');
     } catch (err) {
@@ -45,6 +47,8 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // Set persistence to keep user logged in
+      await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
@@ -58,6 +62,10 @@ const Login = () => {
           level: 'Beginner',
           badges: [],
           completedScenarios: [],
+          totalAttempts: 0,
+          correctAnswers: 0,
+          quizzesCompleted: 0,
+          totalQuizScore: 0,
           createdAt: new Date().toISOString()
         });
       }

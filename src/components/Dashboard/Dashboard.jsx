@@ -34,11 +34,29 @@ const Dashboard = ({ user }) => {
     };
 
     fetchUserData();
+    
+    // Auto-refresh user data every 10 seconds
+    const refreshInterval = setInterval(() => {
+      fetchUserData();
+    }, 10000);
+
+    return () => clearInterval(refreshInterval);
   }, [user.uid]);
 
   if (loading) {
     return <div className="spinner"></div>;
   }
+
+  // Calculate level from score
+  const calculateLevel = (score) => {
+    if (score >= 500) return 'Master';
+    if (score >= 300) return 'Expert';
+    if (score >= 150) return 'Advanced';
+    if (score >= 50) return 'Intermediate';
+    return 'Beginner';
+  };
+
+  const currentLevel = calculateLevel(userData?.score || 0);
 
   const features = [
     {
@@ -83,7 +101,7 @@ const Dashboard = ({ user }) => {
             <Award size={24} />
             <div>
               <div className="level-text">Level</div>
-              <div className="level-value">{userData?.level || 'Beginner'}</div>
+              <div className="level-value">{currentLevel}</div>
             </div>
           </div>
         </div>

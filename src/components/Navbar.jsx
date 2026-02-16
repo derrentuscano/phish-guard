@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { auth, db } from '../firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 import { 
   Shield, 
   Home, 
@@ -9,6 +10,7 @@ import {
   Link as LinkIcon, 
   Trophy, 
   BarChart3, 
+  BookOpen,
   Settings,
   LogOut 
 } from 'lucide-react';
@@ -17,6 +19,24 @@ import './Navbar.css';
 const Navbar = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -79,12 +99,22 @@ const Navbar = ({ user }) => {
           </Link>
           
           <Link 
-            to="/admin" 
-            className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
+            to="/articles" 
+            className={`nav-link ${isActive('/articles') ? 'active' : ''}`}
           >
-            <Settings size={20} />
-            <span>Admin</span>
+            <BookOpen size={20} />
+            <span>Articles</span>
           </Link>
+          
+          {userData?.role === 'admin' && (
+            <Link 
+              to="/admin" 
+              className={`nav-link ${isActive('/admin') ? 'active' : ''}`}
+            >
+              <Settings size={20} />
+              <span>Admin</span>
+            </Link>
+          )}
         </div>
 
         <div className="navbar-user">

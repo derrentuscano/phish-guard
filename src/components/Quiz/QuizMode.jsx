@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { phishingScenarios } from '../../data/scenarios';
+import { getRandomQuestions } from '../../data/quizQuestions';
 import { Trophy, Clock, CheckCircle, XCircle, Award, RefreshCw } from 'lucide-react';
 import './QuizMode.css';
 
@@ -33,9 +33,8 @@ const QuizMode = ({ user }) => {
   }, [quizStarted, quizComplete]);
 
   const startQuiz = () => {
-    // Select 5 random questions
-    const shuffled = [...phishingScenarios].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 5);
+    // Get 10 random cybersecurity questions
+    const selected = getRandomQuestions(10);
     setQuestions(selected);
     setQuizStarted(true);
     setCurrentQuestion(0);
@@ -80,10 +79,19 @@ const QuizMode = ({ user }) => {
       const userDoc = await getDoc(userRef);
       const userData = userDoc.data();
       
+      // Calculate new score and level
+      const newScore = (userData.score || 0) + (correctCount * 10);
+      let newLevel = 'Beginner';
+      if (newScore >= 500) newLevel = 'Master';
+      else if (newScore >= 300) newLevel = 'Expert';
+      else if (newScore >= 150) newLevel = 'Advanced';
+      else if (newScore >= 50) newLevel = 'Intermediate';
+      
       await updateDoc(userRef, {
         quizzesCompleted: increment(1),
         totalQuizScore: increment(finalScore),
-        score: increment(correctCount * 10)
+        score: increment(correctCount * 10),
+        level: newLevel
       });
 
       // Award badges
@@ -119,12 +127,12 @@ const QuizMode = ({ user }) => {
           <div className="quiz-start">
             <Trophy size={64} className="quiz-icon" />
             <h1>🏆 Quiz Challenge</h1>
-            <p>Test your phishing detection skills!</p>
+            <p>Test your cybersecurity knowledge!</p>
 
             <div className="quiz-info card">
               <h3>Quiz Information</h3>
               <ul>
-                <li>📝 5 random phishing scenarios</li>
+                <li>📝 10 cybersecurity knowledge questions</li>
                 <li>⏱️ 5 minutes time limit</li>
                 <li>🎯 Score based on correct answers</li>
                 <li>🏅 Earn badges for achievements</li>
@@ -181,22 +189,22 @@ const QuizMode = ({ user }) => {
                     </div>
                     
                     <div className="question-content">
-                      <strong>From:</strong> {question.from}
-                      <br />
-                      <strong>Subject:</strong> {question.subject}
+                      <strong>{question.question}</strong>
                     </div>
 
                     <div className="answer-details">
                       <div className="answer-row">
                         <span>Your Answer:</span>
                         <span className={userAnswer?.isCorrect ? 'correct-text' : 'incorrect-text'}>
-                          {userAnswer?.userAnswer || 'Not answered'}
+                          {typeof userAnswer?.userAnswer === 'number' 
+                            ? question.options[userAnswer.userAnswer] 
+                            : 'Not answered'}
                         </span>
                       </div>
                       {!userAnswer?.isCorrect && (
                         <div className="answer-row">
                           <span>Correct Answer:</span>
-                          <span className="correct-text">{question.correctAnswer}</span>
+                          <span className="correct-text">{question.options[question.correctAnswer]}</span>
                         </div>
                       )}
                     </div>
@@ -245,54 +253,25 @@ const QuizMode = ({ user }) => {
 
         <div className="question-card card">
           <div className="question-header">
-            <h2>Analyze this email:</h2>
-            <span className={`difficulty-badge badge-${currentQ.difficulty}`}>
-              {currentQ.difficulty}
-            </span>
-          </div>
-
-          <div className="email-preview">
-            <div className="email-meta">
-              <div><strong>From:</strong> {currentQ.from}</div>
-              <div><strong>Subject:</strong> {currentQ.subject}</div>
-            </div>
-            <div className="email-content">
-              {currentQ.content.split('\n').map((line, i) => (
-                <p key={i}>{line || '\u00A0'}</p>
-              ))}
-            </div>
+            <h2>{currentQ.question}</h2>
           </div>
 
           <div className="quiz-answers">
-            <h3>What is your assessment?</h3>
             <div className="answer-options">
-              <button
-                onClick={() => handleAnswer('safe')}
-                className={`answer-option ${selectedAnswer === 'safe' ? 'selected' : ''}`}
-                disabled={selectedAnswer !== null}
-              >
-                <CheckCircle size={24} />
-                <span>Safe</span>
-              </button>
-              <button
-                onClick={() => handleAnswer('suspicious')}
-                className={`answer-option ${selectedAnswer === 'suspicious' ? 'selected' : ''}`}
-                disabled={selectedAnswer !== null}
-              >
-                <Award size={24} />
-                <span>Suspicious</span>
-              </button>
-              <button
-                onClick={() => handleAnswer('phishing')}
-                className={`answer-option ${selectedAnswer === 'phishing' ? 'selected' : ''}`}
-                disabled={selectedAnswer !== null}
-              >
-                <XCircle size={24} />
-                <span>Phishing</span>
-              </button>
+              {currentQ.options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleAnswer(index)}
+                  className={`answer-option ${selectedAnswer === index ? 'selected' : ''}`}
+                  disabled={selectedAnswer !== null}
+                >
+                  <span className="option-letter">{String.fromCharCode(65 + index)}</span>
+                  <span className="option-text">{option}</span>
+                </button>
+              ))}
             </div>
 
-            {selectedAnswer && (
+            {selectedAnswer !== null && (
               <button onClick={nextQuestion} className="btn btn-primary fade-in">
                 {currentQuestion < questions.length - 1 ? 'Next Question' : 'Finish Quiz'}
               </button>

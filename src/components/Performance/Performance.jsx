@@ -20,6 +20,14 @@ const Performance = ({ user }) => {
 
   useEffect(() => {
     fetchPerformanceData();
+    
+    // Auto-refresh performance data every 5 seconds
+    const refreshInterval = setInterval(() => {
+      fetchPerformanceData();
+    }, 5000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval);
   }, [user.uid]);
 
   const fetchPerformanceData = async () => {
@@ -133,7 +141,7 @@ const Performance = ({ user }) => {
         <div className="level-progress-section card">
           <h2>
             <TrendingUp size={24} />
-            Your Level: {stats?.level}
+            Your Level: {levelInfo.currentLevel.name}
           </h2>
           
           <div className="level-info">
@@ -169,7 +177,7 @@ const Performance = ({ user }) => {
 
             <div className="level-text">
               {stats?.score || 0} points
-              {levelInfo.nextLevel && ` - ${levelInfo.nextLevel.min - stats.score} points to ${levelInfo.nextLevel.name}`}
+              {levelInfo.nextLevel && ` - ${levelInfo.nextLevel.min - (stats?.score || 0)} points to ${levelInfo.nextLevel.name}`}
             </div>
           </div>
         </div>

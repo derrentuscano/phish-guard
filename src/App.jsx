@@ -5,6 +5,7 @@ import { auth } from './firebase/config';
 
 // Components
 import Navbar from './components/Navbar';
+import Landing from './components/Landing/Landing';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -13,6 +14,8 @@ import LinkAnalyzer from './components/LinkAnalyzer/LinkAnalyzer';
 import QuizMode from './components/Quiz/QuizMode';
 import Performance from './components/Performance/Performance';
 import AdminPanel from './components/Admin/AdminPanel';
+import Articles from './components/Articles/Articles';
+import ArticleView from './components/Articles/ArticleView';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -78,8 +81,16 @@ function App() {
             element={user ? <AdminPanel user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
+            path="/articles" 
+            element={user ? <Articles /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/articles/:id" 
+            element={user ? <ArticleView /> : <Navigate to="/login" />} 
+          />
+          <Route 
             path="/" 
-            element={<Navigate to={user ? "/dashboard" : "/login"} />} 
+            element={!user ? <Landing /> : <Navigate to="/dashboard" />} 
           />
         </Routes>
       </div>

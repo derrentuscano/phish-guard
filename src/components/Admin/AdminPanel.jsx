@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
 import { 
   Settings, 
@@ -15,6 +15,8 @@ const AdminPanel = ({ user }) => {
   const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [userData, setUserData] = useState(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [formData, setFormData] = useState({
     type: 'email',
     difficulty: 'easy',
@@ -27,8 +29,23 @@ const AdminPanel = ({ user }) => {
   });
 
   useEffect(() => {
+    checkAdminAccess();
     fetchScenarios();
   }, []);
+
+  const checkAdminAccess = async () => {
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      }
+    } catch (error) {
+      console.error('Error checking admin access:', error);
+    } finally {
+      setCheckingAccess(false);
+    }
+  };
 
   const fetchScenarios = async () => {
     try {
@@ -144,6 +161,26 @@ const AdminPanel = ({ user }) => {
       console.error('Error deleting scenario:', error);
     }
   };
+
+  if (checkingAccess) {
+    return <div className="spinner"></div>;
+  }
+
+  // Check if user is admin
+  if (!userData || userData.role !== 'admin') {
+    return (
+      <div className="admin-container fade-in">
+        <div className="container">
+          <div className="access-denied">
+            <AlertCircle size={64} style={{ color: '#ef4444' }} />
+            <h1>Access Denied</h1>
+            <p>You do not have permission to access the admin panel.</p>
+            <p>This area is restricted to administrators only.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-container fade-in">
