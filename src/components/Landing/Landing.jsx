@@ -106,13 +106,15 @@ const Landing = () => {
               <button 
                 className="btn btn-primary btn-large"
                 onClick={() => navigate('/register')}
+                style={{ border: '2px solid white' }}
               >
                 <Zap size={20} />
                 Get Started Free
               </button>
               <button 
-                className="btn btn-outline btn-large"
+                className="btn btn-primary btn-large"
                 onClick={() => navigate('/login')}
+                style={{ border: '2px solid white' }}
               >
                 <Lock size={20} />
                 Sign In
