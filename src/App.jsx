@@ -16,6 +16,8 @@ import Performance from './components/Performance/Performance';
 import AdminPanel from './components/Admin/AdminPanel';
 import Articles from './components/Articles/Articles';
 import ArticleView from './components/Articles/ArticleView';
+import PasswordChecker from './components/PasswordChecker/PasswordChecker';
+import Profile from './components/Profile/Profile';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -75,6 +77,14 @@ function App() {
           <Route 
             path="/performance" 
             element={user ? <Performance user={user} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/password-checker" 
+            element={user ? <PasswordChecker /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/profile" 
+            element={user ? <Profile user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/admin" 

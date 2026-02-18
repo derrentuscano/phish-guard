@@ -12,7 +12,11 @@ import {
   BarChart3, 
   BookOpen,
   Settings,
-  LogOut 
+  LogOut,
+  Lock,
+  User,
+  GraduationCap,
+  ChevronDown
 } from 'lucide-react';
 import './Navbar.css';
 
@@ -20,6 +24,21 @@ const Navbar = ({ user }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userData, setUserData] = useState(null);
+  const [showToolsDropdown, setShowToolsDropdown] = useState(false);
+  const [showResourcesDropdown, setShowResourcesDropdown] = useState(false);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowToolsDropdown(false);
+      setShowResourcesDropdown(false);
+    };
+    
+    if (showToolsDropdown || showResourcesDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showToolsDropdown, showResourcesDropdown]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -41,7 +60,7 @@ const Navbar = ({ user }) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -66,45 +85,71 @@ const Navbar = ({ user }) => {
             <span>Dashboard</span>
           </Link>
           
-          <Link 
-            to="/simulation" 
-            className={`nav-link ${isActive('/simulation') ? 'active' : ''}`}
+          {/* Learning Tools Dropdown */}
+          <div 
+            className={`nav-dropdown ${showToolsDropdown ? 'open' : ''}`}
+            onMouseEnter={() => setShowToolsDropdown(true)}
+            onMouseLeave={() => setShowToolsDropdown(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowToolsDropdown(!showToolsDropdown);
+            }}
           >
-            <Mail size={20} />
-            <span>Email Sim</span>
-          </Link>
+            <button className="nav-link dropdown-trigger">
+              <GraduationCap size={20} />
+              <span>Learning Tools</span>
+              <ChevronDown size={16} />
+            </button>
+            {showToolsDropdown && (
+              <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                <Link to="/simulation" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <Mail size={18} />
+                  <span>Email Simulation</span>
+                </Link>
+                <Link to="/link-analyzer" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <LinkIcon size={18} />
+                  <span>Link Analyzer</span>
+                </Link>
+                <Link to="/quiz" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <Trophy size={18} />
+                  <span>Quiz Mode</span>
+                </Link>
+                <Link to="/password-checker" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <Lock size={18} />
+                  <span>Password Checker</span>
+                </Link>
+              </div>
+            )}
+          </div>
           
-          <Link 
-            to="/link-analyzer" 
-            className={`nav-link ${isActive('/link-analyzer') ? 'active' : ''}`}
+          {/* Resources Dropdown */}
+          <div 
+            className={`nav-dropdown ${showResourcesDropdown ? 'open' : ''}`}
+            onMouseEnter={() => setShowResourcesDropdown(true)}
+            onMouseLeave={() => setShowResourcesDropdown(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowResourcesDropdown(!showResourcesDropdown);
+            }}
           >
-            <LinkIcon size={20} />
-            <span>Link Analyzer</span>
-          </Link>
-          
-          <Link 
-            to="/quiz" 
-            className={`nav-link ${isActive('/quiz') ? 'active' : ''}`}
-          >
-            <Trophy size={20} />
-            <span>Quiz</span>
-          </Link>
-          
-          <Link 
-            to="/performance" 
-            className={`nav-link ${isActive('/performance') ? 'active' : ''}`}
-          >
-            <BarChart3 size={20} />
-            <span>Performance</span>
-          </Link>
-          
-          <Link 
-            to="/articles" 
-            className={`nav-link ${isActive('/articles') ? 'active' : ''}`}
-          >
-            <BookOpen size={20} />
-            <span>Articles</span>
-          </Link>
+            <button className="nav-link dropdown-trigger">
+              <BookOpen size={20} />
+              <span>Resources</span>
+              <ChevronDown size={16} />
+            </button>
+            {showResourcesDropdown && (
+              <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
+                <Link to="/performance" className="dropdown-item" onClick={() => setShowResourcesDropdown(false)}>
+                  <BarChart3 size={18} />
+                  <span>Performance Stats</span>
+                </Link>
+                <Link to="/articles" className="dropdown-item" onClick={() => setShowResourcesDropdown(false)}>
+                  <BookOpen size={18} />
+                  <span>Security Articles</span>
+                </Link>
+              </div>
+            )}
+          </div>
           
           {userData?.role === 'admin' && (
             <Link 
@@ -118,7 +163,13 @@ const Navbar = ({ user }) => {
         </div>
 
         <div className="navbar-user">
-          <span className="user-name">{user?.displayName || user?.email}</span>
+          <Link 
+            to="/profile" 
+            className={`nav-link ${isActive('/profile') ? 'active' : ''}`}
+          >
+            <User size={20} />
+            <span>Profile</span>
+          </Link>
           <button onClick={handleLogout} className="btn-logout">
             <LogOut size={20} />
           </button>

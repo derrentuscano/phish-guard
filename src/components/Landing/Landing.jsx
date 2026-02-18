@@ -11,7 +11,8 @@ import {
   CheckCircle,
   Zap,
   Lock,
-  BookOpen
+  BookOpen,
+  Send
 } from 'lucide-react';
 import './Landing.css';
 
@@ -193,6 +194,35 @@ const Landing = () => {
               <Shield size={20} />
               Start Training Now
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="contact-section">
+        <div className="container">
+          <div className="contact-content">
+            <div className="contact-header">
+              <Mail size={48} className="contact-icon" />
+              <h2>Contact Us</h2>
+              <p>Have questions or need support? We're here to help!</p>
+            </div>
+            <div className="contact-info">
+              <div className="contact-item">
+                <Mail size={24} />
+                <div className="contact-details">
+                  <h3>Email</h3>
+                  <a href="mailto:phishguardcontact@gmail.com">phishguardcontact@gmail.com</a>
+                </div>
+              </div>
+              <div className="contact-item">
+                <Send size={24} />
+                <div className="contact-details">
+                  <h3>Response Time</h3>
+                  <p>We typically respond within 24-48 hours</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
