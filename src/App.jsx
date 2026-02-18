@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase/config';
+import { auth, db } from './firebase/config';
+import { doc, getDoc } from 'firebase/firestore';
 
 // Components
 import Navbar from './components/Navbar';
@@ -18,14 +19,31 @@ import Articles from './components/Articles/Articles';
 import ArticleView from './components/Articles/ArticleView';
 import PasswordChecker from './components/PasswordChecker/PasswordChecker';
 import Profile from './components/Profile/Profile';
+import ChatBot from './components/ChatBot/ChatBot';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      
+      if (currentUser) {
+        // Fetch user data for chatbot context
+        try {
+          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        }
+      } else {
+        setUserData(null);
+      }
+      
       setLoading(false);
     });
 
@@ -103,6 +121,9 @@ function App() {
             element={!user ? <Landing /> : <Navigate to="/dashboard" />} 
           />
         </Routes>
+        
+        {/* AI ChatBot - Available on all authenticated pages */}
+        {user && <ChatBot user={user} userData={userData} />}
       </div>
     </Router>
   );

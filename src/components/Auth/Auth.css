@@ -22,8 +22,11 @@
 }
 
 .auth-icon {
-  color: var(--primary-color);
-  margin-bottom: 10px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+  display: block;
 }
 
 .auth-header h1 {

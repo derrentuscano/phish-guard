@@ -12,7 +12,9 @@ import {
   Zap,
   Lock,
   BookOpen,
-  Send
+  Send,
+  MessageCircle,
+  Flame
 } from 'lucide-react';
 import './Landing.css';
 
@@ -29,31 +31,55 @@ const Landing = () => {
     {
       icon: LinkIcon,
       title: 'Link Analyzer',
-      description: 'Learn to spot suspicious URLs and understand threat indicators',
+      description: 'Check if URLs are suspicious before you click on them',
       color: '#f59e0b'
+    },
+    {
+      icon: Lock,
+      title: 'Password Checker',
+      description: 'Evaluate the strength of your passwords to ensure they\'re secure',
+      color: '#dc2626'
     },
     {
       icon: Trophy,
       title: 'Quiz Mode',
-      description: 'Test your cybersecurity knowledge with timed quizzes',
+      description: 'Test your cybersecurity knowledge with interactive quizzes',
       color: '#10b981'
+    },
+    {
+      icon: MessageCircle,
+      title: 'AI Chatbot Assistant',
+      description: 'Get instant answers about PhishGuard and cybersecurity from our AI',
+      color: '#14b8a6'
     },
     {
       icon: BookOpen,
       title: 'Security Articles',
-      description: 'Read in-depth guides on phishing, passwords, and cyber threats',
+      description: 'Read expert guides on phishing, passwords, and cyber threats',
       color: '#8b5cf6'
     },
     {
+      icon: Award,
+      title: 'Badge System',
+      description: 'Earn achievements like Beginner, Expert, and Master as you learn',
+      color: '#f59e0b'
+    },
+    {
+      icon: Flame,
+      title: 'Streak Tracking',
+      description: 'Build consistent learning habits by maintaining your daily streak',
+      color: '#ff6b35'
+    },
+    {
       icon: TrendingUp,
-      title: 'Performance Tracking',
-      description: 'Monitor your progress and earn badges as you improve',
+      title: 'Performance Stats',
+      description: 'Track your learning progress and see how you\'re improving',
       color: '#2563eb'
     }
   ];
 
   const stats = [
-    { icon: Target, value: '30+', label: 'Training Scenarios' },
+    { icon: Target, value: '9+', label: 'Features' },
     { icon: Trophy, value: '5+', label: 'Achievement Badges' },
     { icon: Award, value: '5', label: 'Skill Levels' }
   ];
@@ -65,7 +91,7 @@ const Landing = () => {
         <div className="container">
           <div className="hero-content">
             <div className="hero-badge">
-              <Shield size={24} />
+              <img src="/phishguardlogo.svg" alt="PhishGuard" className="hero-badge-logo" />
               <span>Cybersecurity Training Platform</span>
             </div>
             <h1 className="hero-title">
@@ -73,7 +99,8 @@ const Landing = () => {
             </h1>
             <p className="hero-description">
               Learn to recognize and avoid phishing attacks through interactive simulations, 
-              real-world scenarios, and comprehensive training modules.
+              AI-powered assistance, password security tools, and comprehensive training modules. 
+              Track your progress, earn badges, and become a cybersecurity expert.
             </p>
             <div className="hero-buttons">
               <button 
@@ -94,7 +121,7 @@ const Landing = () => {
           </div>
           <div className="hero-visual">
             <div className="visual-card">
-              <Shield size={120} className="shield-icon" />
+              <img src="/phishguardlogo.svg" alt="PhishGuard" className="shield-icon" />
               <div className="visual-stats">
                 <div className="visual-stat">
                   <CheckCircle size={20} />
@@ -130,7 +157,7 @@ const Landing = () => {
         <div className="container">
           <div className="section-header">
             <h2>Everything You Need to Stay Secure</h2>
-            <p>Comprehensive training modules designed to enhance your cybersecurity awareness</p>
+            <p>9+ comprehensive features designed to enhance your cybersecurity awareness and keep you protected</p>
           </div>
           <div className="features-grid">
             {features.map((feature, index) => (

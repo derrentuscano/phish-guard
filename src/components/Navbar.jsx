@@ -72,8 +72,7 @@ const Navbar = ({ user }) => {
     <nav className="navbar">
       <div className="container navbar-content">
         <div className="navbar-brand">
-          <Shield size={28} />
-          <span>PhishGuard</span>
+          <img src="/phishguardlogo.svg" alt="PhishGuard Logo" className="navbar-logo" />
         </div>
 
         <div className="navbar-menu">

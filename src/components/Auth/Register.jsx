@@ -150,7 +150,7 @@ const Register = () => {
     <div className="auth-container">
       <div className="auth-card fade-in">
         <div className="auth-header">
-          <Shield size={48} className="auth-icon" />
+          <img src="/phishguardlogo.svg" alt="PhishGuard Logo" className="auth-icon" />
           <h1>Join PhishGuard</h1>
           <p>Start your cybersecurity training journey</p>
         </div>

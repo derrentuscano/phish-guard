@@ -36,6 +36,12 @@
   margin-bottom: 24px;
 }
 
+.hero-badge-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .hero-title {
   font-size: 56px;
   font-weight: 800;
@@ -512,7 +518,9 @@
   }
 
   .shield-icon {
-    color: white;
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
   }
 
