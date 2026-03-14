@@ -6,17 +6,14 @@ import { doc, getDoc } from 'firebase/firestore';
 import { 
   Shield, 
   Home, 
-  Mail, 
   Link as LinkIcon, 
-  Trophy, 
-  BarChart3, 
-  BookOpen,
   Settings,
   LogOut,
   Lock,
   User,
-  GraduationCap,
-  ChevronDown
+  Wrench,
+  ChevronDown,
+  MousePointer2
 } from 'lucide-react';
 import './Navbar.css';
 
@@ -25,20 +22,18 @@ const Navbar = ({ user }) => {
   const location = useLocation();
   const [userData, setUserData] = useState(null);
   const [showToolsDropdown, setShowToolsDropdown] = useState(false);
-  const [showResourcesDropdown, setShowResourcesDropdown] = useState(false);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       setShowToolsDropdown(false);
-      setShowResourcesDropdown(false);
     };
     
-    if (showToolsDropdown || showResourcesDropdown) {
+    if (showToolsDropdown) {
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
-  }, [showToolsDropdown, showResourcesDropdown]);
+  }, [showToolsDropdown]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -84,7 +79,7 @@ const Navbar = ({ user }) => {
             <span>Dashboard</span>
           </Link>
           
-          {/* Learning Tools Dropdown */}
+          {/* Security Tools Dropdown */}
           <div 
             className={`nav-dropdown ${showToolsDropdown ? 'open' : ''}`}
             onMouseEnter={() => setShowToolsDropdown(true)}
@@ -95,56 +90,23 @@ const Navbar = ({ user }) => {
             }}
           >
             <button className="nav-link dropdown-trigger">
-              <GraduationCap size={20} />
-              <span>Learning Tools</span>
+              <Wrench size={20} />
+              <span>Security Tools</span>
               <ChevronDown size={16} />
             </button>
             {showToolsDropdown && (
               <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                <Link to="/simulation" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
-                  <Mail size={18} />
-                  <span>Email Simulation</span>
-                </Link>
                 <Link to="/link-analyzer" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
                   <LinkIcon size={18} />
                   <span>Link Analyzer</span>
-                </Link>
-                <Link to="/quiz" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
-                  <Trophy size={18} />
-                  <span>Quiz Mode</span>
                 </Link>
                 <Link to="/password-checker" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
                   <Lock size={18} />
                   <span>Password Checker</span>
                 </Link>
-              </div>
-            )}
-          </div>
-          
-          {/* Resources Dropdown */}
-          <div 
-            className={`nav-dropdown ${showResourcesDropdown ? 'open' : ''}`}
-            onMouseEnter={() => setShowResourcesDropdown(true)}
-            onMouseLeave={() => setShowResourcesDropdown(false)}
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowResourcesDropdown(!showResourcesDropdown);
-            }}
-          >
-            <button className="nav-link dropdown-trigger">
-              <BookOpen size={20} />
-              <span>Resources</span>
-              <ChevronDown size={16} />
-            </button>
-            {showResourcesDropdown && (
-              <div className="dropdown-menu" onClick={(e) => e.stopPropagation()}>
-                <Link to="/performance" className="dropdown-item" onClick={() => setShowResourcesDropdown(false)}>
-                  <BarChart3 size={18} />
-                  <span>Performance Stats</span>
-                </Link>
-                <Link to="/articles" className="dropdown-item" onClick={() => setShowResourcesDropdown(false)}>
-                  <BookOpen size={18} />
-                  <span>Security Articles</span>
+                <Link to="/link-preview" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <MousePointer2 size={18} />
+                  <span>Link Hover Preview</span>
                 </Link>
               </div>
             )}

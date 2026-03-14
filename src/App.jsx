@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db } from './firebase/config';
 import { doc, getDoc } from 'firebase/firestore';
+import { sendAuthToExtension, clearExtensionAuth } from './utils/extensionBridge';
 
 // Components
 import Navbar from './components/Navbar';
@@ -10,16 +11,12 @@ import Landing from './components/Landing/Landing';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import Dashboard from './components/Dashboard/Dashboard';
-import PhishingSimulation from './components/Simulation/PhishingSimulation';
 import LinkAnalyzer from './components/LinkAnalyzer/LinkAnalyzer';
-import QuizMode from './components/Quiz/QuizMode';
-import Performance from './components/Performance/Performance';
-import AdminPanel from './components/Admin/AdminPanel';
-import Articles from './components/Articles/Articles';
-import ArticleView from './components/Articles/ArticleView';
 import PasswordChecker from './components/PasswordChecker/PasswordChecker';
+import AdminPanel from './components/Admin/AdminPanel';
 import Profile from './components/Profile/Profile';
 import ChatBot from './components/ChatBot/ChatBot';
+import LinkPreview from './components/LinkPreview/LinkPreview';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -40,8 +37,12 @@ function App() {
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
+
+        // Send auth tokens to extension if it's installed
+        sendAuthToExtension(currentUser);
       } else {
         setUserData(null);
+        clearExtensionAuth();
       }
       
       setLoading(false);
@@ -81,24 +82,16 @@ function App() {
             element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
-            path="/simulation" 
-            element={user ? <PhishingSimulation user={user} /> : <Navigate to="/login" />} 
-          />
-          <Route 
             path="/link-analyzer" 
             element={user ? <LinkAnalyzer user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
-            path="/quiz" 
-            element={user ? <QuizMode user={user} /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/performance" 
-            element={user ? <Performance user={user} /> : <Navigate to="/login" />} 
-          />
-          <Route 
             path="/password-checker" 
             element={user ? <PasswordChecker /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/link-preview" 
+            element={user ? <LinkPreview user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/profile" 
@@ -107,14 +100,6 @@ function App() {
           <Route 
             path="/admin" 
             element={user ? <AdminPanel user={user} /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/articles" 
-            element={user ? <Articles /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/articles/:id" 
-            element={user ? <ArticleView /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/" 

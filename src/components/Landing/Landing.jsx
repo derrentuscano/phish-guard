@@ -2,19 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
-  Mail, 
   Link as LinkIcon, 
-  Trophy, 
-  TrendingUp,
   Target,
-  Award,
   CheckCircle,
   Zap,
   Lock,
-  BookOpen,
   Send,
   MessageCircle,
-  Flame
+  Mail
 } from 'lucide-react';
 import './Landing.css';
 
@@ -22,12 +17,6 @@ const Landing = () => {
   const navigate = useNavigate();
 
   const features = [
-    {
-      icon: Mail,
-      title: 'Email Simulation',
-      description: 'Practice identifying phishing emails with real-world scenarios',
-      color: '#ef4444'
-    },
     {
       icon: LinkIcon,
       title: 'Link Analyzer',
@@ -41,47 +30,17 @@ const Landing = () => {
       color: '#dc2626'
     },
     {
-      icon: Trophy,
-      title: 'Quiz Mode',
-      description: 'Test your cybersecurity knowledge with interactive quizzes',
-      color: '#10b981'
-    },
-    {
       icon: MessageCircle,
       title: 'AI Chatbot Assistant',
       description: 'Get instant answers about PhishGuard and cybersecurity from our AI',
       color: '#14b8a6'
-    },
-    {
-      icon: BookOpen,
-      title: 'Security Articles',
-      description: 'Read expert guides on phishing, passwords, and cyber threats',
-      color: '#8b5cf6'
-    },
-    {
-      icon: Award,
-      title: 'Badge System',
-      description: 'Earn achievements like Beginner, Expert, and Master as you learn',
-      color: '#f59e0b'
-    },
-    {
-      icon: Flame,
-      title: 'Streak Tracking',
-      description: 'Build consistent learning habits by maintaining your daily streak',
-      color: '#ff6b35'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Performance Stats',
-      description: 'Track your learning progress and see how you\'re improving',
-      color: '#2563eb'
     }
   ];
 
   const stats = [
-    { icon: Target, value: '9+', label: 'Features' },
-    { icon: Trophy, value: '5+', label: 'Achievement Badges' },
-    { icon: Award, value: '5', label: 'Skill Levels' }
+    { icon: Target, value: '3+', label: 'Security Tools' },
+    { icon: Shield, value: '24/7', label: 'AI Assistance' },
+    { icon: Lock, value: '100%', label: 'Privacy Focused' }
   ];
 
   return (
@@ -92,15 +51,15 @@ const Landing = () => {
           <div className="hero-content">
             <div className="hero-badge">
               <img src="/phishguardlogo.svg" alt="PhishGuard" className="hero-badge-logo" />
-              <span>Cybersecurity Training Platform</span>
+              <span>Cybersecurity Tools Platform</span>
             </div>
             <h1 className="hero-title">
-              Master Phishing Detection with <span className="gradient-text">PhishGuard</span>
+              Stay Safe Online with <span className="gradient-text">PhishGuard</span>
             </h1>
             <p className="hero-description">
-              Learn to recognize and avoid phishing attacks through interactive simulations, 
-              AI-powered assistance, password security tools, and comprehensive training modules. 
-              Track your progress, earn badges, and become a cybersecurity expert.
+              Protect yourself from phishing attacks with our powerful security tools. 
+              Analyze suspicious links, check your password strength, and get AI-powered 
+              cybersecurity assistance — all in one platform.
             </p>
             <div className="hero-buttons">
               <button 
@@ -158,8 +117,8 @@ const Landing = () => {
       <section className="features-section">
         <div className="container">
           <div className="section-header">
-            <h2>Everything You Need to Stay Secure</h2>
-            <p>9+ comprehensive features designed to enhance your cybersecurity awareness and keep you protected</p>
+            <h2>Powerful Security Tools</h2>
+            <p>Everything you need to stay protected online</p>
           </div>
           <div className="features-grid">
             {features.map((feature, index) => (
@@ -183,28 +142,28 @@ const Landing = () => {
         <div className="container">
           <div className="section-header">
             <h2>How PhishGuard Works</h2>
-            <p>Simple, effective, and engaging training process</p>
+            <p>Simple, effective, and powerful security tools</p>
           </div>
           <div className="steps-grid">
             <div className="step-card">
               <div className="step-number">1</div>
               <h3>Sign Up</h3>
-              <p>Create your free account and start your cybersecurity journey</p>
+              <p>Create your free account to access all security tools</p>
             </div>
             <div className="step-card">
               <div className="step-number">2</div>
-              <h3>Train</h3>
-              <p>Practice with realistic phishing scenarios and learn to identify threats</p>
+              <h3>Analyze</h3>
+              <p>Use the Link Analyzer to check suspicious URLs for phishing patterns</p>
             </div>
             <div className="step-card">
               <div className="step-number">3</div>
-              <h3>Test</h3>
-              <p>Take quizzes to validate your knowledge and track improvement</p>
+              <h3>Secure</h3>
+              <p>Check your passwords and get AI-powered security recommendations</p>
             </div>
             <div className="step-card">
               <div className="step-number">4</div>
-              <h3>Master</h3>
-              <p>Level up, earn badges, and become a phishing detection expert</p>
+              <h3>Stay Protected</h3>
+              <p>Use our tools regularly to keep yourself safe from cyber threats</p>
             </div>
           </div>
         </div>
@@ -214,14 +173,14 @@ const Landing = () => {
       <section className="cta-section">
         <div className="container">
           <div className="cta-content">
-            <h2>Ready to Enhance Your Security Skills?</h2>
-            <p>Join thousands of users learning to protect themselves from cyber threats</p>
+            <h2>Ready to Protect Yourself Online?</h2>
+            <p>Access powerful security tools to stay safe from phishing and cyber threats</p>
             <button 
               className="btn btn-primary btn-large"
               onClick={() => navigate('/register')}
             >
               <Shield size={20} />
-              Start Training Now
+              Get Started Now
             </button>
           </div>
         </div>

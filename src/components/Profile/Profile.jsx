@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { 
-  User, 
-  Edit2, 
-  Save, 
-  Shield, 
+import {
+  User,
+  Edit2,
+  Save,
+  Shield,
   Trophy,
   Target,
   Calendar,
@@ -17,8 +17,7 @@ import {
   Clock,
   X
 } from 'lucide-react';
-import BadgeDisplay from '../Badges/BadgeDisplay';
-import { BADGES } from '../../utils/badges';
+
 import './Profile.css';
 
 const AVATAR_OPTIONS = [
@@ -71,7 +70,7 @@ const Profile = ({ user }) => {
         avatar: editForm.avatar,
         name: editForm.displayName
       });
-      
+
       console.log('Profile saved successfully');
       await fetchUserData();
       setEditing(false);
@@ -91,12 +90,12 @@ const Profile = ({ user }) => {
   const getSkills = () => {
     const score = userData?.score || 0;
     const attempts = userData?.totalAttempts || 0;
-    const successRate = attempts > 0 
-      ? ((userData?.successfulAttempts || 0) / attempts) * 100 
+    const successRate = attempts > 0
+      ? ((userData?.successfulAttempts || 0) / attempts) * 100
       : 0;
 
     const skills = [];
-    
+
     if (successRate >= 80) skills.push({ name: 'Phishing Detection', level: 'Expert', icon: '🎯' });
     else if (successRate >= 60) skills.push({ name: 'Phishing Detection', level: 'Advanced', icon: '🎯' });
     else if (successRate >= 40) skills.push({ name: 'Phishing Detection', level: 'Intermediate', icon: '🎯' });
@@ -124,7 +123,7 @@ const Profile = ({ user }) => {
 
   const getActivityTimeline = () => {
     const timeline = [];
-    
+
     // Add registration
     if (userData?.createdAt) {
       timeline.push({
@@ -255,7 +254,7 @@ const Profile = ({ user }) => {
                   </div>
                   <p className="profile-email">{user.email}</p>
                   {userData?.bio && <p className="profile-bio">{userData.bio}</p>}
-                  
+
                   <div className="profile-level-badge" style={{ background: levelInfo.color }}>
                     <Award size={20} />
                     <span>{levelInfo.level}</span>
@@ -292,42 +291,30 @@ const Profile = ({ user }) => {
 
         {/* Profile Tabs */}
         <div className="profile-tabs">
-          <button 
+          <button
             className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
             <User size={18} />
             Overview
           </button>
-          <button 
+          <button
             className={`tab-button ${activeTab === 'skills' ? 'active' : ''}`}
             onClick={() => setActiveTab('skills')}
           >
             <Target size={18} />
             Skills
           </button>
-          <button 
-            className={`tab-button ${activeTab === 'badges' ? 'active' : ''}`}
-            onClick={() => setActiveTab('badges')}
-          >
-            <Trophy size={18} />
-            Badges ({earnedBadges.length})
-          </button>
-          <button 
+
+          <button
             className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
             onClick={() => setActiveTab('timeline')}
           >
             <Clock size={18} />
             Timeline
           </button>
-          <button 
-            className={`tab-button ${activeTab === 'bookmarks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('bookmarks')}
-          >
-            <BookOpen size={18} />
-            Bookmarks ({bookmarkedArticles.length})
-          </button>
-          <button 
+
+          <button
             className={`tab-button ${activeTab === 'notes' ? 'active' : ''}`}
             onClick={() => setActiveTab('notes')}
           >
@@ -350,16 +337,16 @@ const Profile = ({ user }) => {
                     <div className="progress-card-header">
                       <span>Success Rate</span>
                       <span className="progress-percentage">
-                        {userData?.totalAttempts > 0 
+                        {userData?.totalAttempts > 0
                           ? Math.round(((userData?.successfulAttempts || 0) / userData.totalAttempts) * 100)
                           : 0}%
                       </span>
                     </div>
                     <div className="progress-bar-container">
-                      <div 
+                      <div
                         className="progress-bar-fill"
-                        style={{ 
-                          width: `${userData?.totalAttempts > 0 
+                        style={{
+                          width: `${userData?.totalAttempts > 0
                             ? ((userData?.successfulAttempts || 0) / userData.totalAttempts) * 100
                             : 0}%`,
                           background: '#10b981'
@@ -367,16 +354,16 @@ const Profile = ({ user }) => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="progress-card">
                     <div className="progress-card-header">
                       <span>Current Streak</span>
                       <span className="progress-percentage">{userData?.currentStreak || 0} days</span>
                     </div>
                     <div className="progress-bar-container">
-                      <div 
+                      <div
                         className="progress-bar-fill"
-                        style={{ 
+                        style={{
                           width: `${Math.min((userData?.currentStreak || 0) / 30 * 100, 100)}%`,
                           background: '#f97316'
                         }}
@@ -423,24 +410,7 @@ const Profile = ({ user }) => {
             </div>
           )}
 
-          {activeTab === 'badges' && (
-            <div className="badges-tab">
-              <h2>All Badges ({earnedBadges.length} / {Object.keys(BADGES).length})</h2>
-              <div className="badges-grid">
-                {Object.values(BADGES).map((badge) => {
-                  const earned = earnedBadges.find(b => b.id === badge.id);
-                  return (
-                    <BadgeDisplay 
-                      key={badge.id} 
-                      badge={badge} 
-                      size="medium" 
-                      earned={!!earned}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
 
           {activeTab === 'timeline' && (
             <div className="timeline-tab">
@@ -459,10 +429,10 @@ const Profile = ({ user }) => {
                         <h3>{item.title}</h3>
                         {item.description && <p>{item.description}</p>}
                         <span className="timeline-date">
-                          {item.date.toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric', 
-                            year: 'numeric' 
+                          {item.date.toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
                           })}
                         </span>
                       </div>
@@ -475,29 +445,7 @@ const Profile = ({ user }) => {
             </div>
           )}
 
-          {activeTab === 'bookmarks' && (
-            <div className="bookmarks-tab">
-              <h2>
-                <BookOpen size={24} />
-                Bookmarked Articles
-              </h2>
-              {bookmarkedArticles.length > 0 ? (
-                <div className="bookmarks-list">
-                  {bookmarkedArticles.map((article, idx) => (
-                    <div key={idx} className="bookmark-card">
-                      <span className="bookmark-icon">{article.icon || '📄'}</span>
-                      <div>
-                        <h3>{article.title}</h3>
-                        <p>{article.category}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-state">No bookmarked articles yet. Browse articles and save your favorites!</p>
-              )}
-            </div>
-          )}
+
 
           {activeTab === 'notes' && (
             <div className="notes-tab">
