@@ -3,9 +3,13 @@
 // Calls Google Safe Browsing API + saves results to Firestore
 // ============================================================
 
-const GSB_API_KEY  = 'AIzaSyDuGWhyde55yiu7EJM7eUOR22lVUAPNyYI';
-const FIREBASE_API_KEY = 'AIzaSyC8WXo-4AwPrdjX6OmSuZr-I2Edx57ICOM';
-const FIREBASE_PROJECT  = 'phish-guard-316c9';
+// Load API keys from config.js (gitignored — never committed)
+// Copy browser-extension/config.example.js → config.js to set your keys
+importScripts('config.js');
+
+// Keys are now available via EXT_CONFIG (defined in config.js)
+const GSB_API_KEY      = EXT_CONFIG.GSB_API_KEY;
+const FIREBASE_PROJECT = EXT_CONFIG.FIREBASE_PROJECT;
 
 // In-memory cache to avoid redundant API calls
 const cache = {};

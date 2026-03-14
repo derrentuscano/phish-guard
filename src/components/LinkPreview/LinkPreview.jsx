@@ -27,7 +27,8 @@ import { db, auth } from '../../firebase/config';
 import './LinkPreview.css';
 
 // ── Push auth tokens to the extension (so it can write to Firestore) ──────
-const EXTENSION_ID = 'kncilihcppcfldgjjhkmgdhijojebdgc';
+const EXTENSION_ID = import.meta.env.VITE_EXTENSION_ID?.trim();
+
 
 async function connectExtension() {
   if (!window.chrome?.runtime?.sendMessage) return false;

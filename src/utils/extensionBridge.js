@@ -2,7 +2,8 @@
 // extensionBridge.js — with full debug logging
 // ============================================================
 
-const EXTENSION_ID = 'kncilihcppcfldgjjhkmgdhijojebdgc';
+const EXTENSION_ID = import.meta.env.VITE_EXTENSION_ID?.trim();
+
 
 export async function sendAuthToExtension(user) {
   console.log('[Bridge] sendAuthToExtension called, user:', user?.email);
