@@ -1,0 +1,324 @@
+/* ── Reverse Image Search ── */
+
+.ris-container {
+  padding: 2rem 0 4rem;
+  min-height: 100vh;
+}
+
+/* Header */
+.ris-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+.ris-hico {
+  width: 80px; height: 80px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #7c3aed22, #a855f733);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1rem;
+  color: #7c3aed;
+  box-shadow: 0 8px 24px #7c3aed22;
+}
+.ris-header h1 {
+  font-size: 2rem; font-weight: 800;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.4rem;
+}
+.ris-header p { color: var(--text-secondary); font-size: 0.95rem; }
+
+/* Card */
+.ris-card { padding: 0; overflow: hidden; }
+
+/* Drop Zone */
+.ris-dz {
+  border: 2px dashed var(--border-color);
+  border-radius: 14px;
+  margin: 1.5rem;
+  padding: 2.5rem 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-secondary);
+}
+.ris-dz:hover, .dz-drag { border-color: #7c3aed; background: #7c3aed08; }
+.dz-file { border-color: #7c3aed44; border-style: solid; cursor: default; }
+.ris-hidden { display: none; }
+
+.ris-up { text-align: center; }
+.ris-uico { width: 64px; height: 64px; border-radius: 16px; background: #7c3aed18; color: #7c3aed; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+.ris-ut { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
+.ris-us { font-size: 0.82rem; color: var(--text-secondary); }
+
+.ris-prev { display: flex; align-items: center; gap: 1.2rem; }
+.ris-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border-color); }
+.ris-fn { font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; }
+.ris-fs { font-size: 0.82rem; color: var(--text-secondary); }
+
+/* Actions */
+.ris-acts { display: flex; gap: 0.75rem; padding: 0 1.5rem 1.5rem; }
+.ris-sbtn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: white; border: none; border-radius: 10px;
+  padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s ease;
+}
+.ris-sbtn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px #7c3aed44; }
+.ris-sbtn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.ris-rbtn {
+  padding: 0.75rem 1.2rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500;
+  border: 1.5px solid var(--border-color); background: transparent;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.2s;
+}
+.ris-rbtn:hover { border-color: #7c3aed; color: #7c3aed; background: #7c3aed08; }
+
+/* Progress */
+.ris-prog {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3rem 2rem; text-align: center;
+}
+.ris-spin-wrap {
+  width: 72px; height: 72px; position: relative;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;
+}
+.ris-ring {
+  position: absolute; border-radius: 50%; border: 2.5px solid transparent;
+  border-top-color: #7c3aed;
+  animation: spin 1s linear infinite;
+}
+.ris-ring { width: 72px; height: 72px; }
+.ris-r2  { width: 56px; height: 56px; border-top-color: #a855f7; animation-duration: 1.4s; animation-direction: reverse; }
+.ris-r3  { width: 40px; height: 40px; border-top-color: #c084fc; animation-duration: 0.8s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ris-prog h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem; }
+.ris-pl { font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1rem; }
+
+.ris-steps-list { display: flex; flex-direction: column; gap: 0.4rem; min-width: 220px; text-align: left; }
+.ris-step { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; padding: 0.3rem 0; }
+.rs-ico { width: 18px; text-align: center; }
+.rs-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--border-color); }
+.rs-done { color: #16a34a; }
+.rs-active { color: #7c3aed; font-weight: 600; }
+.rs-pend { color: var(--text-secondary); }
+.spin { animation: spin 1s linear infinite; }
+
+/* Error */
+.ris-err {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: #fef2f2; border: 1px solid #fecaca; color: #dc2626;
+  border-radius: 10px; padding: 0.85rem 1rem; margin-top: 1rem;
+  font-size: 0.88rem;
+}
+.ris-gwarn {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: #fffbeb; border: 1px solid #fde68a; color: #d97706;
+  border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+/* Results */
+.ris-results { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+/* Hero */
+.ris-hero {
+  background: var(--bg-card);
+  border: 1.5px solid #7c3aed33;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex; align-items: flex-start; gap: 1.5rem;
+  background: linear-gradient(135deg, #7c3aed08, #a855f708);
+}
+.ris-hi {
+  width: 110px; height: 110px; object-fit: cover;
+  border-radius: 12px; border: 2px solid var(--border-color);
+  flex-shrink: 0;
+}
+.ris-hm { flex: 1; min-width: 0; }
+.ris-htag { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.ris-type-chip {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+  background: #7c3aed22; color: #7c3aed;
+  padding: 0.2rem 0.6rem; border-radius: 6px;
+}
+.ris-year-chip {
+  font-size: 0.72rem; color: var(--text-secondary);
+  background: var(--bg-secondary);
+  padding: 0.2rem 0.6rem; border-radius: 6px;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+.ris-hsubject {
+  font-size: 1.25rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 0.4rem; line-height: 1.3;
+}
+.ris-horigin {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-size: 0.85rem; color: #7c3aed; font-weight: 500; margin-bottom: 0.6rem;
+}
+.ris-hmeta {
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  font-size: 0.78rem; color: var(--text-secondary);
+}
+.ris-hmeta svg { opacity: 0.6; }
+.dot { opacity: 0.4; }
+
+/* Auth Badge */
+.ris-auth-badge {
+  text-align: center; padding: 1rem 1.2rem;
+  border: 1.5px solid; border-radius: 14px; min-width: 110px; flex-shrink: 0;
+}
+.ris-auth-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+.ris-auth-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.3rem; }
+.ris-auth-sub { font-size: 0.68rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+/* Info Grid */
+.ris-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.ris-ic { padding: 1rem 1.2rem; }
+.ris-ic-title {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.82rem; font-weight: 700; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.7rem;
+}
+.ris-ic-text { font-size: 0.88rem; color: var(--text-primary); line-height: 1.55; }
+.ris-nel { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.ris-nel li { display: flex; align-items: flex-start; gap: 0.4rem; font-size: 0.85rem; color: var(--text-primary); }
+.ris-nel li svg { flex-shrink: 0; color: #7c3aed; margin-top: 2px; }
+.ris-colors { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ris-color-tag {
+  font-size: 0.78rem; background: var(--bg-secondary);
+  border: 1px solid var(--border-color); border-radius: 6px;
+  padding: 0.25rem 0.6rem; color: var(--text-secondary);
+}
+
+/* Sections */
+.ris-section {
+  background: var(--bg-card); border: 1.5px solid var(--border-color);
+  border-radius: 14px; overflow: hidden;
+}
+.ris-sh {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.2rem; cursor: pointer; user-select: none;
+  transition: background 0.15s;
+}
+.ris-sh:hover { background: var(--bg-secondary); }
+.ris-st { display: flex; align-items: center; gap: 0.6rem; font-size: 0.9rem; font-weight: 600; }
+.ris-sr { display: flex; align-items: center; gap: 0.6rem; }
+.ris-sb { padding: 0 1.2rem 1.2rem; }
+.ris-badge {
+  font-size: 0.72rem; font-weight: 600;
+  padding: 0.2rem 0.6rem; border-radius: 6px;
+}
+.rb-info    { background: #eff6ff; color: #2563eb; }
+.rb-safe    { background: #f0fdf4; color: #16a34a; }
+.rb-warn    { background: #fffbeb; color: #d97706; }
+.rb-danger  { background: #fef2f2; color: #dc2626; }
+
+/* Search Terms */
+.ris-terms-hint { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 0.8rem; }
+.ris-terms-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.ris-term-chip {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: #7c3aed11; border: 1.5px solid #7c3aed33;
+  border-radius: 8px; padding: 0.4rem 0.75rem;
+  font-size: 0.84rem; color: var(--text-primary);
+}
+.ris-copy-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary); padding: 0; line-height: 1;
+  transition: color 0.15s;
+}
+.ris-copy-btn:hover { color: #7c3aed; }
+
+/* Quick Links */
+.ris-links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem; }
+.ris-link-card {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  background: var(--bg-secondary); border: 1.5px solid var(--border-color);
+  border-radius: 10px; padding: 0.85rem 1rem;
+  text-decoration: none; position: relative;
+  transition: all 0.2s ease;
+}
+.ris-link-card:hover { border-color: #7c3aed; background: #7c3aed08; transform: translateY(-2px); box-shadow: 0 4px 16px #7c3aed22; }
+.ris-lc-name { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); }
+.ris-lc-hint { font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4; }
+.ris-lc-ico { position: absolute; top: 0.75rem; right: 0.75rem; color: #7c3aed; opacity: 0.6; }
+
+/* Manipulation Section */
+.ris-manip { display: flex; flex-direction: column; gap: 0.9rem; }
+.ris-manip-verdict { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.ris-mv-label { font-size: 0.82rem; color: var(--text-secondary); }
+.ris-mv-tag {
+  font-size: 0.8rem; font-weight: 700; padding: 0.2rem 0.7rem;
+  border-radius: 6px; letter-spacing: 0.04em;
+}
+.mvt-bad { background: #fef2f2; color: #dc2626; }
+.mvt-good { background: #f0fdf4; color: #16a34a; }
+.ris-ai-flag {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-size: 0.75rem; font-weight: 600; color: #dc2626;
+  background: #fef2f2; border: 1px solid #fecaca;
+  padding: 0.2rem 0.6rem; border-radius: 6px;
+}
+.ris-bars { display: flex; flex-direction: column; gap: 0.55rem; }
+.ris-bar-row { display: flex; flex-direction: column; gap: 0.3rem; }
+.ris-bar-h { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+.ris-bar-l { color: var(--text-secondary); }
+.ris-bar-v { font-weight: 600; font-size: 0.78rem; }
+.ris-bar-track { height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; }
+.ris-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.ris-signals { display: flex; flex-direction: column; gap: 0.35rem; }
+.ris-sig-title { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+.ris-sig-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.83rem; color: #ea580c; }
+.ris-sig-item svg { flex-shrink: 0; margin-top: 2px; }
+.ris-tech-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; background: var(--bg-secondary); border-radius: 10px; padding: 0.75rem 1rem; }
+.ris-tech-item { display: flex; flex-direction: column; gap: 0.1rem; }
+.ris-tl { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em; }
+.ris-tv { font-size: 0.78rem; color: var(--text-primary); word-break: break-word; }
+
+/* Safe Search */
+.ris-safe-grid { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.ris-safe-pill {
+  flex: 1; min-width: 130px;
+  display: flex; justify-content: space-between; align-items: center;
+  border: 1.5px solid; border-radius: 10px; padding: 0.6rem 0.9rem;
+}
+.ris-sp-label { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
+.ris-sp-val { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+
+/* Metadata */
+.ris-meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem; }
+.ris-mi {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--bg-secondary); border-radius: 8px; padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+}
+.ris-mi svg { color: #7c3aed; flex-shrink: 0; }
+.ris-ml { color: var(--text-secondary); font-weight: 500; min-width: 60px; }
+.ris-mv { color: var(--text-primary); font-weight: 600; word-break: break-word; }
+.ris-no-meta {
+  display: flex; align-items: center; gap: 0.6rem;
+  color: var(--text-secondary); font-size: 0.85rem;
+  background: var(--bg-secondary); border-radius: 10px; padding: 0.85rem 1rem;
+}
+
+/* Rescan */
+.ris-rescan { display: flex; gap: 0.75rem; justify-content: center; padding-top: 0.5rem; flex-wrap: wrap; }
+
+/* Explainer */
+.ris-expl { margin-top: 2.5rem; }
+.ris-expl-title { font-size: 1rem; font-weight: 700; text-align: center; color: var(--text-secondary); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.ris-expl-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(210px,1fr)); gap: 1rem; }
+.ris-ex-card { padding: 1.2rem; }
+.ris-ex-ico { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; }
+.ris-ex-title { font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+.ris-ex-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.ris-ex-list li { display: flex; align-items: center; gap: 0.45rem; font-size: 0.80rem; color: var(--text-secondary); }
+.ris-ex-list svg { flex-shrink: 0; color: #7c3aed; }
+
+/* Dark mode override hints already handled by var(--bg-card) etc. */
+@media (max-width: 640px) {
+  .ris-hero { flex-direction: column; }
+  .ris-hi { width: 100%; height: 180px; }
+  .ris-auth-badge { align-self: stretch; }
+  .ris-tech-row { grid-template-columns: 1fr; }
+}

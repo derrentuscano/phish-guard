@@ -17,6 +17,9 @@ import AdminPanel from './components/Admin/AdminPanel';
 import Profile from './components/Profile/Profile';
 import ChatBot from './components/ChatBot/ChatBot';
 import LinkPreview from './components/LinkPreview/LinkPreview';
+import FileScanner from './components/FileScanner/FileScanner';
+import ImageDetector from './components/ImageDetector/ImageDetector';
+import ReverseImageSearch from './components/ReverseImageSearch/ReverseImageSearch';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -92,6 +95,18 @@ function App() {
           <Route 
             path="/link-preview" 
             element={user ? <LinkPreview user={user} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/file-scanner" 
+            element={user ? <FileScanner user={user} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/image-detector" 
+            element={user ? <ImageDetector user={user} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/reverse-image-search" 
+            element={user ? <ReverseImageSearch user={user} /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/profile" 

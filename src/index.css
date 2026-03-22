@@ -5,19 +5,19 @@
 }
 
 :root {
-  --primary-color: #10b981;
-  --primary-dark: #059669;
-  --secondary-color: #14b8a6;
-  --danger-color: #ef4444;
+  --primary-color: #00ff41;
+  --primary-dark: #00cc6a;
+  --secondary-color: #00fc40;
+  --danger-color: #ff7351;
   --warning-color: #f59e0b;
-  --bg-primary: #ffffff;
-  --bg-secondary: #f3f4f6;
-  --bg-dark: #1f2937;
-  --text-primary: #111827;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --bg-primary: #060e1b;
+  --bg-secondary: #101a29;
+  --bg-dark: #020814;
+  --text-primary: #f9f9ff;
+  --text-secondary: #a3abbc;
+  --border-color: rgba(0, 255, 65, 0.15);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 30px rgba(0, 255, 65, 0.15);
 }
 
 body {
@@ -206,7 +206,8 @@ code {
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-out;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 /* Responsive */

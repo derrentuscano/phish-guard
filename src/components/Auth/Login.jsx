@@ -112,7 +112,7 @@ const Login = () => {
 
   return (
     <div className="auth-container">
-      <div className="auth-card fade-in">
+      <div className="auth-card hud-fade-in">
         <div className="auth-header">
           <img src="/phishguardlogo.svg" alt="PhishGuard Logo" className="auth-icon" />
           <h1>PhishGuard</h1>

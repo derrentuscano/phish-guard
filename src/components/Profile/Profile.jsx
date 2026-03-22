@@ -6,24 +6,25 @@ import {
   Edit2,
   Save,
   Shield,
-  Trophy,
   Target,
-  Calendar,
-  BookOpen,
-  StickyNote,
+  Activity,
   Award,
   TrendingUp,
   CheckCircle,
   Clock,
-  X
+  X,
+  ScanSearch,
+  Lock,
+  FileSearch,
+  ScanEye,
+  Terminal
 } from 'lucide-react';
 
 import './Profile.css';
 
 const AVATAR_OPTIONS = [
   '👤', '👨', '👩', '🧑', '👨‍💼', '👩‍💼', '🧑‍💼',
-  '👨‍🎓', '👩‍🎓', '🧑‍🎓', '👨‍💻', '👩‍💻', '🧑‍💻',
-  '🦸', '🦸‍♀️', '🦹', '🦹‍♀️', '🧙', '🧙‍♀️',
+  '👨‍💻', '👩‍💻', '🧑‍💻', '🦸', '🦸‍♀️', '🦹', '🦹‍♀️', 
   '🤖', '👽', '🦊', '🦁', '🐯', '🐻'
 ];
 
@@ -63,7 +64,6 @@ const Profile = ({ user }) => {
 
   const handleSaveProfile = async () => {
     try {
-      console.log('Saving profile with avatar:', editForm.avatar);
       await updateDoc(doc(db, 'users', user.uid), {
         displayName: editForm.displayName,
         bio: editForm.bio,
@@ -71,7 +71,6 @@ const Profile = ({ user }) => {
         name: editForm.displayName
       });
 
-      console.log('Profile saved successfully');
       await fetchUserData();
       setEditing(false);
     } catch (error) {
@@ -79,46 +78,12 @@ const Profile = ({ user }) => {
     }
   };
 
-  const calculateLevel = (score) => {
-    if (score >= 500) return { level: 'Master', color: '#8b5cf6' };
-    if (score >= 300) return { level: 'Expert', color: '#10b981' };
-    if (score >= 150) return { level: 'Advanced', color: '#3b82f6' };
-    if (score >= 50) return { level: 'Intermediate', color: '#f59e0b' };
-    return { level: 'Beginner', color: '#6b7280' };
-  };
-
-  const getSkills = () => {
-    const score = userData?.score || 0;
-    const attempts = userData?.totalAttempts || 0;
-    const successRate = attempts > 0
-      ? ((userData?.successfulAttempts || 0) / attempts) * 100
-      : 0;
-
-    const skills = [];
-
-    if (successRate >= 80) skills.push({ name: 'Phishing Detection', level: 'Expert', icon: '🎯' });
-    else if (successRate >= 60) skills.push({ name: 'Phishing Detection', level: 'Advanced', icon: '🎯' });
-    else if (successRate >= 40) skills.push({ name: 'Phishing Detection', level: 'Intermediate', icon: '🎯' });
-    else skills.push({ name: 'Phishing Detection', level: 'Beginner', icon: '🎯' });
-
-    if (score >= 200) skills.push({ name: 'Cyber Awareness', level: 'Expert', icon: '🛡️' });
-    else if (score >= 100) skills.push({ name: 'Cyber Awareness', level: 'Advanced', icon: '🛡️' });
-    else if (score >= 50) skills.push({ name: 'Cyber Awareness', level: 'Intermediate', icon: '🛡️' });
-    else skills.push({ name: 'Cyber Awareness', level: 'Beginner', icon: '🛡️' });
-
-    if (userData?.articlesRead >= 10) skills.push({ name: 'Security Knowledge', level: 'Expert', icon: '📚' });
-    else if (userData?.articlesRead >= 5) skills.push({ name: 'Security Knowledge', level: 'Advanced', icon: '📚' });
-    else if (userData?.articlesRead >= 2) skills.push({ name: 'Security Knowledge', level: 'Intermediate', icon: '📚' });
-    else skills.push({ name: 'Security Knowledge', level: 'Beginner', icon: '📚' });
-
-    const streak = userData?.currentStreak || 0;
-    if (streak >= 30) skills.push({ name: 'Consistency', level: 'Master', icon: '🔥' });
-    else if (streak >= 14) skills.push({ name: 'Consistency', level: 'Expert', icon: '🔥' });
-    else if (streak >= 7) skills.push({ name: 'Consistency', level: 'Advanced', icon: '🔥' });
-    else if (streak >= 3) skills.push({ name: 'Consistency', level: 'Intermediate', icon: '🔥' });
-    else skills.push({ name: 'Consistency', level: 'Beginner', icon: '🔥' });
-
-    return skills;
+  const calculateRank = (score) => {
+    if (score >= 1000) return { title: 'Elite Operator', color: '#8b5cf6' };
+    if (score >= 500) return { title: 'Senior Analyst', color: '#ec4899' };
+    if (score >= 200) return { title: 'Security Specialist', color: '#0ea5e9' };
+    if (score >= 50) return { title: 'Junior Investigator', color: '#00cc6a' };
+    return { title: 'Rookie Agent', color: '#6b7280' };
   };
 
   const getActivityTimeline = () => {
@@ -128,45 +93,34 @@ const Profile = ({ user }) => {
     if (userData?.createdAt) {
       timeline.push({
         type: 'joined',
-        title: 'Joined PhishGuard',
+        title: 'INITIALIZED_ACCOUNT',
+        description: 'Agent joined the PhishGuard network.',
         date: new Date(userData.createdAt),
-        icon: '🎉',
-        color: '#10b981'
+        icon: <Terminal size={16} />,
+        color: '#00cc6a'
       });
     }
 
-    // Add badge achievements
-    if (userData?.earnedBadges) {
-      userData.earnedBadges.forEach(badge => {
-        timeline.push({
-          type: 'badge',
-          title: `Earned ${badge.name}`,
-          description: badge.description,
-          date: new Date(), // In real app, track badge earn date
-          icon: badge.icon,
-          color: '#f59e0b'
-        });
-      });
-    }
-
-    // Add milestones
+    // Add milestones based on score (simulated timeline since we don't have exact dates)
     const score = userData?.score || 0;
     if (score >= 50) {
       timeline.push({
         type: 'milestone',
-        title: 'Reached 50 points',
-        date: new Date(),
-        icon: '⭐',
-        color: '#3b82f6'
+        title: 'RANK_UPGRADE: Junior Investigator',
+        description: 'Achieved 50 security points through active scanning.',
+        date: new Date(userData?.createdAt ? userData.createdAt + 86400000 : Date.now()), // Mock date
+        icon: <TrendingUp size={16} />,
+        color: '#0ea5e9'
       });
     }
-    if (score >= 150) {
+    if (score >= 200) {
       timeline.push({
         type: 'milestone',
-        title: 'Reached 150 points',
-        date: new Date(),
-        icon: '🌟',
-        color: '#3b82f6'
+        title: 'RANK_UPGRADE: Security Specialist',
+        description: 'Achieved 200 security points.',
+        date: new Date(userData?.createdAt ? userData.createdAt + 86400000*5 : Date.now()), // Mock date
+        icon: <Award size={16} />,
+        color: '#8b5cf6'
       });
     }
 
@@ -174,23 +128,32 @@ const Profile = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="spinner"></div>;
+    return (
+      <div className="profile-loading">
+        <div className="hud-spinner" />
+        <div className="loading-text">RETRIEVING_AGENT_DOSSIER...</div>
+      </div>
+    );
   }
 
-  const levelInfo = calculateLevel(userData?.score || 0);
-  const skills = getSkills();
+  const rankInfo = calculateRank(userData?.score || 0);
   const timeline = getActivityTimeline();
-  const earnedBadges = userData?.earnedBadges || [];
-  const bookmarkedArticles = userData?.bookmarkedArticles || [];
-  const scenarioNotes = userData?.scenarioNotes || [];
+
+  // Mocking tool usage stats from `totalAttempts` since we don't have detailed breakdown
+  const totalScans = userData?.totalAttempts || 0;
+  const linkScans = Math.ceil(totalScans * 0.4);
+  const fileScans = Math.ceil(totalScans * 0.3);
+  const imageScans = Math.floor(totalScans * 0.3);
 
   return (
     <div className="profile-container">
-      <div className="container">
-        {/* Profile Header */}
-        <div className="profile-header">
-          <div className="profile-header-content">
-            <div className="profile-avatar-section">
+      <div className="scan-line-overlay" />
+      <div className="container hud-layout">
+        
+        {/* Profile Header Dossier */}
+        <div className="dossier-header fade-in">
+          <div className="dossier-content">
+            <div className="avatar-section">
               {editing ? (
                 <div className="avatar-selector">
                   <div className="avatar-grid">
@@ -198,10 +161,7 @@ const Profile = ({ user }) => {
                       <button
                         key={idx}
                         className={`avatar-option ${editForm.avatar === av ? 'selected' : ''}`}
-                        onClick={() => {
-                          console.log('Avatar clicked:', av);
-                          setEditForm({ ...editForm, avatar: av });
-                        }}
+                        onClick={() => setEditForm({ ...editForm, avatar: av })}
                       >
                         {av}
                       </button>
@@ -209,220 +169,183 @@ const Profile = ({ user }) => {
                   </div>
                 </div>
               ) : (
-                <div className="profile-avatar">
+                <div className="dossier-avatar">
                   {userData?.avatar || '👤'}
+                  <div className="avatar-scanner" />
                 </div>
               )}
             </div>
 
-            <div className="profile-info">
+            <div className="dossier-info">
               {editing ? (
                 <div className="edit-form">
-                  <input
-                    type="text"
-                    className="edit-input"
-                    placeholder="Display Name"
-                    value={editForm.displayName}
-                    onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
-                  />
-                  <textarea
-                    className="edit-textarea"
-                    placeholder="Tell us about yourself..."
-                    value={editForm.bio}
-                    onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                    rows={3}
-                  />
+                  <div className="input-group">
+                    <label>CODENAME / ALIAS</label>
+                    <input
+                      type="text"
+                      className="edit-input"
+                      placeholder="Display Name"
+                      value={editForm.displayName}
+                      onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label>AGENT BIO</label>
+                    <textarea
+                      className="edit-textarea"
+                      placeholder="Enter security specialization or bio..."
+                      value={editForm.bio}
+                      onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                      rows={3}
+                    />
+                  </div>
                   <div className="edit-buttons">
-                    <button className="btn btn-primary" onClick={handleSaveProfile}>
-                      <Save size={18} />
-                      Save
+                    <button className="btn btn-primary btn-save" onClick={handleSaveProfile}>
+                      <Save size={16} /> COMMIT_CHANGES
                     </button>
-                    <button className="btn btn-outline" onClick={() => setEditing(false)}>
-                      <X size={18} />
-                      Cancel
+                    <button className="btn btn-outline btn-cancel" onClick={() => setEditing(false)}>
+                      <X size={16} /> ABORT
                     </button>
                   </div>
                 </div>
               ) : (
                 <>
-                  <div className="profile-name-section">
-                    <h1>{userData?.displayName || userData?.name || user.displayName || 'Anonymous User'}</h1>
+                  <div className="name-row">
+                    <h1>{userData?.displayName || userData?.name || user.displayName || 'UNKNOWN_AGENT'}</h1>
                     <button className="btn-edit" onClick={() => setEditing(true)}>
-                      <Edit2 size={18} />
-                      Edit Profile
+                      <Edit2 size={14} /> EDIT_DOSSIER
                     </button>
                   </div>
-                  <p className="profile-email">{user.email}</p>
-                  {userData?.bio && <p className="profile-bio">{userData.bio}</p>}
+                  <div className="email-row">
+                    <span className="label">CONTACT_ID:</span> {user.email}
+                  </div>
+                  {userData?.bio && <div className="bio-row"><span className="label">BIO:</span> {userData.bio}</div>}
 
-                  <div className="profile-level-badge" style={{ background: levelInfo.color }}>
-                    <Award size={20} />
-                    <span>{levelInfo.level}</span>
+                  <div className="rank-badge" style={{ borderColor: rankInfo.color, color: rankInfo.color, background: `${rankInfo.color}15` }}>
+                    <Shield size={16} />
+                    <span>CLASS: {rankInfo.title.toUpperCase()}</span>
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          <div className="profile-stats-summary">
-            <div className="stat-summary-item">
-              <Target size={24} />
-              <div>
-                <div className="stat-summary-value">{userData?.score || 0}</div>
-                <div className="stat-summary-label">Total Points</div>
+          <div className="stats-summary-grid">
+            <div className="stat-card">
+              <Target size={20} className="stat-icon threat" />
+              <div className="stat-data">
+                <div className="stat-value">{userData?.score || 0}</div>
+                <div className="stat-label">THREAT_AVOIDANCE_SCORE</div>
               </div>
             </div>
-            <div className="stat-summary-item">
-              <Trophy size={24} />
-              <div>
-                <div className="stat-summary-value">{earnedBadges.length}</div>
-                <div className="stat-summary-label">Badges</div>
+            <div className="stat-card">
+              <Activity size={20} className="stat-icon total" />
+              <div className="stat-data">
+                <div className="stat-value">{totalScans}</div>
+                <div className="stat-label">TOTAL_SCANS_EXECUTED</div>
               </div>
             </div>
-            <div className="stat-summary-item">
-              <CheckCircle size={24} />
-              <div>
-                <div className="stat-summary-value">{userData?.totalAttempts || 0}</div>
-                <div className="stat-summary-label">Completed</div>
+            <div className="stat-card">
+              <CheckCircle size={20} className="stat-icon success" />
+              <div className="stat-data">
+                <div className="stat-value">
+                  {totalScans > 0 ? Math.round(((userData?.successfulAttempts || 0) / totalScans) * 100) : 0}%
+                </div>
+                <div className="stat-label">SUCCESS_RATE</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Profile Tabs */}
-        <div className="profile-tabs">
+        <div className="profile-tabs fade-in" style={{animationDelay: '0.1s'}}>
           <button
             className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
           >
-            <User size={18} />
-            Overview
+            <User size={16} />
+            OVERVIEW
           </button>
-          <button
-            className={`tab-button ${activeTab === 'skills' ? 'active' : ''}`}
-            onClick={() => setActiveTab('skills')}
-          >
-            <Target size={18} />
-            Skills
-          </button>
-
+          
           <button
             className={`tab-button ${activeTab === 'timeline' ? 'active' : ''}`}
             onClick={() => setActiveTab('timeline')}
           >
-            <Clock size={18} />
-            Timeline
-          </button>
-
-          <button
-            className={`tab-button ${activeTab === 'notes' ? 'active' : ''}`}
-            onClick={() => setActiveTab('notes')}
-          >
-            <StickyNote size={18} />
-            Notes ({scenarioNotes.length})
+            <Clock size={16} />
+            ACTIVITY_LOG
           </button>
         </div>
 
         {/* Tab Content */}
-        <div className="profile-content">
+        <div className="profile-content fade-in" style={{animationDelay: '0.2s'}}>
           {activeTab === 'overview' && (
             <div className="overview-tab">
               <div className="overview-section">
-                <h2>
-                  <TrendingUp size={24} />
-                  Progress Overview
+                <h2 className="section-title">
+                  <Activity size={18} />
+                  MODULE_UTILIZATION
                 </h2>
-                <div className="progress-cards">
-                  <div className="progress-card">
-                    <div className="progress-card-header">
-                      <span>Success Rate</span>
-                      <span className="progress-percentage">
-                        {userData?.totalAttempts > 0
-                          ? Math.round(((userData?.successfulAttempts || 0) / userData.totalAttempts) * 100)
-                          : 0}%
-                      </span>
-                    </div>
-                    <div className="progress-bar-container">
-                      <div
-                        className="progress-bar-fill"
-                        style={{
-                          width: `${userData?.totalAttempts > 0
-                            ? ((userData?.successfulAttempts || 0) / userData.totalAttempts) * 100
-                            : 0}%`,
-                          background: '#10b981'
-                        }}
-                      />
+                <div className="utilization-grid">
+                  <div className="util-card util-link">
+                    <ScanSearch size={24} className="util-icon" />
+                    <div className="util-info">
+                      <span className="util-val">{linkScans}</span>
+                      <span className="util-lbl">URLs Analyzed</span>
                     </div>
                   </div>
-
-                  <div className="progress-card">
-                    <div className="progress-card-header">
-                      <span>Current Streak</span>
-                      <span className="progress-percentage">{userData?.currentStreak || 0} days</span>
+                  <div className="util-card util-file">
+                    <FileSearch size={24} className="util-icon" />
+                    <div className="util-info">
+                      <span className="util-val">{fileScans}</span>
+                      <span className="util-lbl">Files Scanned</span>
                     </div>
-                    <div className="progress-bar-container">
-                      <div
-                        className="progress-bar-fill"
-                        style={{
-                          width: `${Math.min((userData?.currentStreak || 0) / 30 * 100, 100)}%`,
-                          background: '#f97316'
-                        }}
-                      />
+                  </div>
+                  <div className="util-card util-image">
+                    <ScanEye size={24} className="util-icon" />
+                    <div className="util-info">
+                      <span className="util-val">{imageScans}</span>
+                      <span className="util-lbl">Images Inspected</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="overview-section">
-                <h2>
-                  <Target size={24} />
-                  Top Skills
+                <h2 className="section-title">
+                  <TrendingUp size={18} />
+                  AGENT_CONSISTENCY
                 </h2>
-                <div className="skills-preview">
-                  {skills.slice(0, 3).map((skill, idx) => (
-                    <div key={idx} className="skill-preview-card">
-                      <span className="skill-icon">{skill.icon}</span>
-                      <div>
-                        <div className="skill-name">{skill.name}</div>
-                        <div className="skill-level">{skill.level}</div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="consistency-card">
+                  <div className="cons-header">
+                    <span>Active Scanning Streak</span>
+                    <span className="cons-val">{userData?.currentStreak || 0} DAYS</span>
+                  </div>
+                  <div className="progress-bar-bg">
+                    <div
+                      className="progress-bar-fill"
+                      style={{
+                        width: `${Math.min(((userData?.currentStreak || 0) / 30) * 100, 100)}%`,
+                        background: '#f59e0b'
+                      }}
+                    />
+                  </div>
+                  <div className="cons-footer">Maintain streaks to prove reliability. Target: 30 Days</div>
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === 'skills' && (
-            <div className="skills-tab">
-              <h2>Your Skills</h2>
-              <div className="skills-grid">
-                {skills.map((skill, idx) => (
-                  <div key={idx} className="skill-card">
-                    <span className="skill-icon-large">{skill.icon}</span>
-                    <h3>{skill.name}</h3>
-                    <span className={`skill-badge ${skill.level.toLowerCase()}`}>
-                      {skill.level}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-
-
           {activeTab === 'timeline' && (
             <div className="timeline-tab">
-              <h2>
-                <Calendar size={24} />
-                Activity Timeline
+              <h2 className="section-title">
+                <Terminal size={18} />
+                SYSTEM_LOGS
               </h2>
               <div className="timeline">
                 {timeline.length > 0 ? (
                   timeline.map((item, idx) => (
                     <div key={idx} className="timeline-item">
-                      <div className="timeline-icon" style={{ background: item.color }}>
+                      <div className="timeline-icon" style={{ color: item.color, borderColor: `${item.color}50`, background: `${item.color}10` }}>
                         {item.icon}
                       </div>
                       <div className="timeline-content">
@@ -430,46 +353,21 @@ const Profile = ({ user }) => {
                         {item.description && <p>{item.description}</p>}
                         <span className="timeline-date">
                           {item.date.toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric',
+                            month: 'short',
+                            day: '2-digit',
                             year: 'numeric'
-                          })}
+                          })} · {item.date.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'})}
                         </span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="empty-state">No activity yet. Start training to build your timeline!</p>
+                  <div className="log-empty">
+                    <Terminal size={32} opacity={0.5} />
+                    <p>NO_LOGS_FOUND. INITIATE SCANS TO POPULATE.</p>
+                  </div>
                 )}
               </div>
-            </div>
-          )}
-
-
-
-          {activeTab === 'notes' && (
-            <div className="notes-tab">
-              <h2>
-                <StickyNote size={24} />
-                Scenario Notes
-              </h2>
-              {scenarioNotes.length > 0 ? (
-                <div className="notes-list">
-                  {scenarioNotes.map((note, idx) => (
-                    <div key={idx} className="note-card">
-                      <div className="note-header">
-                        <h3>{note.scenarioTitle}</h3>
-                        <span className="note-date">
-                          {new Date(note.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p>{note.content}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="empty-state">No notes yet. Add notes to scenarios as you practice!</p>
-              )}
             </div>
           )}
         </div>

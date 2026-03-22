@@ -13,7 +13,10 @@ import {
   User,
   Wrench,
   ChevronDown,
-  MousePointer2
+  MousePointer2,
+  FileSearch,
+  ScanEye,
+  Image
 } from 'lucide-react';
 import './Navbar.css';
 
@@ -107,6 +110,18 @@ const Navbar = ({ user }) => {
                 <Link to="/link-preview" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
                   <MousePointer2 size={18} />
                   <span>Link Hover Preview</span>
+                </Link>
+                <Link to="/file-scanner" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <FileSearch size={18} />
+                  <span>File Scanner</span>
+                </Link>
+                <Link to="/image-detector" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <ScanEye size={18} />
+                  <span>AI Image Detector</span>
+                </Link>
+                <Link to="/reverse-image-search" className="dropdown-item" onClick={() => setShowToolsDropdown(false)}>
+                  <Image size={18} />
+                  <span>Reverse Image Search</span>
                 </Link>
               </div>
             )}

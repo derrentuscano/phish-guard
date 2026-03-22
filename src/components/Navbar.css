@@ -1,7 +1,13 @@
+/* ============================================================
+   NAVBAR — Cybersecurity Dark Theme
+   ============================================================ */
+
 .navbar {
-  background-color: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow);
+  background-color: rgba(6, 14, 27, 0.85); /* surface color with opacity */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 255, 65, 0.3); /* Neon green bottom border */
+  box-shadow: 0 4px 30px rgba(0, 204, 106, 0.15); /* Neon bloom shadow */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -11,42 +17,82 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  padding: 10px 20px;
   gap: 20px;
 }
 
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 22px;
-  font-weight: 700;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--primary-color);
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.5px;
   text-decoration: none;
   padding: 4px 8px;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
 }
 
 .navbar-logo {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  object-position: center;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
   transition: all 0.3s ease;
-  border-radius: 8px;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 65, 0.5));
 }
 
-.navbar-logo:hover {
-  transform: scale(1.1);
-  filter: brightness(1.1);
+.navbar-brand:hover .navbar-logo {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 12px rgba(0, 255, 65, 0.8));
 }
 
 .navbar-menu {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
   justify-content: center;
 }
 
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 0px; /* Sharp corners as per design system */
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.nav-link:hover {
+  background-color: rgba(0, 255, 65, 0.05);
+  color: var(--primary-color);
+  border-color: rgba(0, 255, 65, 0.2); /* Ghost border */
+  box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.05);
+}
+
+.nav-link.active {
+  background-color: rgba(0, 255, 65, 0.1);
+  color: var(--primary-color);
+  border-color: rgba(0, 255, 65, 0.4);
+  box-shadow: 0 0 15px rgba(0, 255, 65, 0.15), inset 0 0 10px rgba(0, 255, 65, 0.1);
+  text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+}
+
+.nav-link svg {
+  color: inherit;
+}
+
+/* Security Tools Dropdown */
 .nav-dropdown {
   position: relative;
   user-select: none;
@@ -61,43 +107,45 @@
 }
 
 .nav-dropdown.open .dropdown-trigger {
-  background-color: var(--bg-secondary);
+  background-color: rgba(0, 255, 65, 0.08);
   color: var(--primary-color);
+  border-color: rgba(0, 255, 65, 0.3);
 }
 
 .dropdown-menu {
   position: absolute;
   top: 100%;
   left: 0;
-  margin-top: 4px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 220px;
+  margin-top: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--primary-color);
+  border-radius: 0px; /* Sharp corners */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 255, 65, 0.15);
+  min-width: 240px;
   padding: 8px 0;
   z-index: 1000;
-  animation: dropdownFade 0.2s ease;
+  animation: dropdownFade 0.2s ease forwards;
+  transform-origin: top;
 }
 
-/* Add padding-top to prevent gap issues */
+/* Add an invisible bridge to prevent mouse-leave gaps */
 .dropdown-menu::before {
   content: '';
   position: absolute;
-  top: -4px;
+  top: -8px;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 8px;
 }
 
 @keyframes dropdownFade {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scaleY(0.9) translateY(-10px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: scaleY(1) translateY(0);
   }
 }
 
@@ -108,43 +156,30 @@
   padding: 12px 20px;
   text-decoration: none;
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
+  font-family: 'Inter', sans-serif;
   transition: all 0.2s ease;
   cursor: pointer;
   white-space: nowrap;
+  border-left: 2px solid transparent;
 }
 
 .dropdown-item:hover {
-  background-color: var(--bg-secondary);
+  background-color: rgba(0, 255, 65, 0.08);
   color: var(--primary-color);
+  border-left: 2px solid var(--primary-color);
+  padding-left: 26px; /* Subtle indent on hover */
 }
 
-.dropdown-item:active {
-  background-color: #e0e7ff;
-}
-
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-  background-color: var(--bg-secondary);
+.dropdown-item svg {
   color: var(--primary-color);
+  opacity: 0.7;
 }
 
-.nav-link.active {
-  background-color: var(--primary-color);
-  color: white;
+.dropdown-item:hover svg {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--primary-color));
 }
 
 .navbar-user {
@@ -153,46 +188,43 @@
   gap: 12px;
 }
 
-.user-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
 .btn-logout {
   background: transparent;
-  border: none;
+  border: 1px solid rgba(255, 115, 81, 0.2); /* error color ghost border */
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 0px;
   display: flex;
   align-items: center;
   transition: all 0.3s ease;
 }
 
 .btn-logout:hover {
-  background-color: var(--bg-secondary);
+  background-color: rgba(255, 115, 81, 0.1);
   color: var(--danger-color);
+  border-color: rgba(255, 115, 81, 0.5);
+  box-shadow: 0 0 10px rgba(255, 115, 81, 0.2);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .navbar-content {
-    flex-direction: column;
-    gap: 12px;
+    flex-wrap: wrap;
   }
   
   .navbar-menu {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 8px;
   }
   
-  .nav-link span {
-    display: none;
-  }
-  
-  .user-name {
-    font-size: 12px;
+  .dropdown-menu {
+    position: fixed;
+    top: auto;
+    left: 20px;
+    right: 20px;
+    width: auto;
   }
 }
