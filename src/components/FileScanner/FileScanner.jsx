@@ -50,8 +50,8 @@ const ScoreGauge = ({ score, verdict }) => {
     return `M ${x1} ${y1} A ${r} ${r} 0 1 1 ${x2} ${y2}`;
   };
 
-  const colorMap = { safe: '#10b981', suspicious: '#f59e0b', dangerous: '#ef4444' };
-  const color = colorMap[verdict] || '#94a3b8';
+  const colorMap = { safe: '#00ff41', suspicious: '#f59e0b', dangerous: '#ff7351' };
+  const color = colorMap[verdict] || '#a3abbc';
 
   return (
     <div className="fs-gauge">
@@ -65,7 +65,7 @@ const ScoreGauge = ({ score, verdict }) => {
             </feMerge>
           </filter>
         </defs>
-        <path d={arcPath(radius)} fill="none" stroke="#e5e7eb" strokeWidth={stroke} strokeLinecap="round" />
+        <path d={arcPath(radius)} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={stroke} strokeLinecap="round" />
         <path
           d={arcPath(radius)}
           fill="none"
@@ -560,32 +560,28 @@ const FileScanner = () => {
             {[
               {
                 icon: Fingerprint,
-                color: '#6366f1',
                 title: 'Magic Byte Detection',
                 desc: 'Reads the hidden byte signature of the file to reveal its true identity, catching disguised executables.',
               },
               {
                 icon: Code,
-                color: '#f59e0b',
                 title: 'Content Analysis',
                 desc: 'Scans file contents for JavaScript, macros, PowerShell commands, suspicious URLs, and embedded executables.',
               },
               {
                 icon: Database,
-                color: '#0ea5e9',
                 title: 'VirusTotal Check',
                 desc: "Calculates the file's SHA-256 fingerprint and checks it against 70+ antivirus engines — without uploading the file.",
               },
               {
                 icon: BarChart2,
-                color: '#10b981',
                 title: 'Risk Score',
                 desc: 'Combines all checks into a score out of 100 with a clear verdict: Safe, Suspicious, or Dangerous.',
               },
-            ].map(({ icon: Icon, color, title, desc }) => (
+            ].map(({ icon: Icon, title, desc }) => (
               <div key={title} className="fs-info-card card">
-                <div className="fs-info-icon" style={{ backgroundColor: `${color}18` }}>
-                  <Icon size={28} style={{ color }} />
+                <div className="fs-info-icon">
+                  <Icon size={28} />
                 </div>
                 <h3>{title}</h3>
                 <p>{desc}</p>

@@ -99,15 +99,37 @@ STRICT RULES:
 - Format responses with bullet points when listing items
 
 PHISHGUARD FEATURES YOU CAN EXPLAIN:
-• Email Simulation - Practice identifying phishing emails
-• Link Analyzer - Check if URLs are suspicious
-• Quiz Mode - Test cybersecurity knowledge
-• Password Checker - Evaluate password strength
-• Performance Stats - Track learning progress
-• Security Articles - Read expert guides
-• Badge System - Earn achievements (Beginner, Expert, Master, etc.)
-• Streak Tracking - Build consistent learning habits
-• Profile Customization - Set avatars, bio, track skills
+
+🔐 AUTHENTICATION & USER MANAGEMENT:
+• User Registration & Login - Secure Firebase authentication
+• User Profiles - Customize with display name, bio, avatar (20+ emoji options), activity tracking
+
+🎯 SECURITY ANALYSIS TOOLS:
+• Link Analyzer - Multi-engine URL threat detection with VirusTotal & Google Safe Browsing integration, 7 heuristic rules, 0-100 threat score
+• Password Strength Checker - Real-time analysis with 8-criteria evaluation, entropy calculation, improvement suggestions
+• File Scanner - Deep forensic analysis with 80+ file signatures, magic byte detection, VirusTotal hash lookup, <100MB limit
+• Image Detector - Multiple modes (Classic/Advanced/AI Vision/Full Power) with EXIF, ELA, FFT, PRNU fingerprinting, Groq AI analysis
+• Reverse Image Search - Gemini Vision AI integration, manipulation detection, authenticity scoring
+• Link Preview - Hover-based real-time link checking, browser extension integration, historical scan records
+
+📊 USER EXPERIENCE & GAMIFICATION:
+• Dashboard - Overview of all tools with quick access navigation
+• User Statistics - Track scans performed, articles read, detection rates, achievements
+• Badge System - Earn achievements based on performance (Beginner, Expert, Master)
+• Streak Tracking - Build consistent learning habits and track daily progress
+• Performance Stats - Monitor learning progress and improvement over time
+
+🤖 AI-POWERED ASSISTANCE:
+• ChatBot (AI Assistant) - 24/7 cybersecurity guidance powered by Google Gemini API, context-aware responses
+
+🌐 BROWSER EXTENSION:
+• PhishGuard Link Preview Extension - Hover-over scanning on any website, real-time threat detection, tooltip display, synchronized with main platform
+
+👨‍💼 ADMIN CAPABILITIES:
+• Analytics Dashboard - View platform statistics, user metrics, top performers
+• User Management - Track user activity and progress
+• Scenario Management - Create/edit phishing scenarios
+• Content Management - Manage educational articles and resources
 
 USER CONTEXT:
 - Name: ${userData?.displayName || 'User'}

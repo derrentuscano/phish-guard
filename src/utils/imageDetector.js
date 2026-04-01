@@ -454,7 +454,7 @@ function scoreToVerdict(rawScore, mode, forcedAI=false) {
   if(forcedAI) return { confidence:99, aiLikelihood:'VERY HIGH', label:'Almost Certainly AI Generated', color:'#dc2626', bgColor:'#fef2f2', overrideReason:'AI software name found directly in metadata — forced verdict' };
 
   // Normalize to 0-100 confidence based on mode-specific max scores
-  const modeMax = { classic: 130, advanced: 110, ai: 50, combo: 220 };
+  const modeMax = { classic: 130, advanced: 145, ai: 50, combo: 220 };
   const pct = Math.min(100, Math.max(0, (rawScore / (modeMax[mode]||130)) * 100));
   // Scale so that scoring ~60% of max = ~70% confidence
   const confidence = Math.min(99, Math.round(pct * 1.1));
@@ -476,7 +476,7 @@ export async function analyzeImage(file, mode = 'combo', onProgress) {
 
   emit(0, 'Loading image…');
   const img = await loadImageBitmap(file);
-  const dataUrl = (mode==='ai'||mode==='combo') ? await fileToDataUrl(file) : null;
+  const dataUrl = (mode==='ai'||mode==='combo'||mode==='advanced') ? await fileToDataUrl(file) : null;
 
   const layers = {};
   let totalScore = 0;
@@ -502,19 +502,26 @@ export async function analyzeImage(file, mode = 'combo', onProgress) {
 
   // ── ADVANCED ─────────────────────────────────────────────
   if(mode==='advanced'||mode==='combo'){
+    // Run EXIF first — provides the strongest AI signal (AI software tag)
+    if(mode==='advanced'){
+      emit(step++, 'EXIF Metadata Analysis…');
+      layers.exif = await checkExif(file);
+      if(layers.exif.forcedAI) forcedAI=true;
+    }
+
     emit(step++, 'FFT Frequency Domain Analysis…');
     layers.fft = await checkFFT(img);
 
-    emit(step++, 'Blue Channel Laplacian Analysis…');
+    emit(step++, 'Edge Sharpness (Laplacian) Analysis…');
     layers.laplacian = await checkLaplacian(img);
 
-    emit(step++, 'PRNU Camera Fingerprint…');
+    emit(step++, 'Camera Fingerprint (PRNU)…');
     layers.prnu = await checkPRNU(img);
 
     emit(step++, 'Color Depth Analysis…');
     layers.colorDepth = await checkColorDepth(img);
 
-    emit(step++, 'Advanced ELA (per-block)…');
+    emit(step++, 'Block-Level ELA (Advanced)…');
     layers.advEla = await checkAdvancedELA(file, img);
 
     emit(step++, 'C2PA Content Credentials…');

@@ -2,10 +2,11 @@ import * as exifr from 'exifr';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 
 // ─────────────────────────────────────────────────────────────
 // HELPERS
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────s
 function loadImageBitmap(file) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file);
@@ -46,9 +47,9 @@ function drawToCanvas(img, w, h) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// GEMINI VISION ANALYSIS
+// SHARED PROMPT (same JSON structure expected from Gemini & Groq)
 // ─────────────────────────────────────────────────────────────
-const GEMINI_PROMPT = `You are a professional reverse image search and digital forensics expert. Analyze this image thoroughly and return ONLY valid JSON (no markdown, no extra text) with this exact structure:
+const VISION_PROMPT = `You are a professional reverse image search and digital forensics expert. Analyze this image thoroughly and return ONLY valid JSON (no markdown, no extra text) with this exact structure:
 
 {
   "subject": "<brief description of the main subject — person, object, landmark, artwork, etc.>",
@@ -73,6 +74,16 @@ const GEMINI_PROMPT = `You are a professional reverse image search and digital f
   "confidence": <0-100>
 }`;
 
+function parseJsonResponse(text) {
+  const cleaned = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error('Vision API returned unexpected format');
+  return JSON.parse(match[0]);
+}
+
+// ─────────────────────────────────────────────────────────────
+// GEMINI VISION ANALYSIS
+// ─────────────────────────────────────────────────────────────
 export async function analyzeWithGemini(file) {
   const base64 = await fileToBase64(file);
   const mimeType = file.type || 'image/jpeg';
@@ -80,7 +91,7 @@ export async function analyzeWithGemini(file) {
   const body = {
     contents: [{
       parts: [
-        { text: GEMINI_PROMPT },
+        { text: VISION_PROMPT },
         { inline_data: { mime_type: mimeType, data: base64 } }
       ]
     }],
@@ -95,18 +106,69 @@ export async function analyzeWithGemini(file) {
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${text.slice(0, 120)}`);
+    let cleanMessage = text.slice(0, 120);
+    try {
+      const errJson = JSON.parse(text);
+      if (errJson.error && errJson.error.message) {
+        cleanMessage = errJson.error.message;
+      }
+    } catch (err) {
+      // Ignored
+    }
+    if (res.status === 429) {
+      throw new Error(`Gemini API rate limit exceeded (429). Falling back to Groq.`);
+    }
+    throw new Error(`Gemini API error ${res.status}: ${cleanMessage}`);
   }
 
   const data = await res.json();
   const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return parseJsonResponse(content);
+}
 
-  // Strip markdown fences if Gemini wraps it
-  const cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-  const match = cleaned.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Gemini returned unexpected format');
+// ─────────────────────────────────────────────────────────────
+// GROQ VISION FALLBACK
+// ─────────────────────────────────────────────────────────────
+export async function analyzeWithGroq(dataUrl) {
+  if (!GROQ_API_KEY) throw new Error('GROQ_API_KEY not configured');
 
-  return JSON.parse(match[0]);
+  const body = {
+    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+    messages: [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: VISION_PROMPT },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ],
+      },
+    ],
+    temperature: 0.1,
+    max_tokens: 1024,
+  };
+
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let cleanMessage = text.slice(0, 120);
+    try {
+      const errJson = JSON.parse(text);
+      if (errJson.error?.message) cleanMessage = errJson.error.message;
+    } catch { /* ignore */ }
+    throw new Error(`Groq API error ${res.status}: ${cleanMessage}`);
+  }
+
+  const data = await res.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  return parseJsonResponse(content);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -155,7 +217,7 @@ export async function runELA(file, img) {
 
     const diffs = [];
     for (let i = 0; i < origPx.length; i += 4) {
-      diffs.push((Math.abs(origPx[i] - rePx[i]) + Math.abs(origPx[i+1] - rePx[i+1]) + Math.abs(origPx[i+2] - rePx[i+2])) / 3);
+      diffs.push((Math.abs(origPx[i] - rePx[i]) + Math.abs(origPx[i + 1] - rePx[i + 1]) + Math.abs(origPx[i + 2] - rePx[i + 2])) / 3);
     }
 
     const mean = diffs.reduce((a, b) => a + b, 0) / diffs.length;
@@ -183,11 +245,11 @@ export async function runColorAnalysis(img) {
     const px = drawToCanvas(img, W, H).getContext('2d').getImageData(0, 0, W, H).data;
 
     const hR = new Array(256).fill(0), hG = new Array(256).fill(0), hB = new Array(256).fill(0);
-    for (let i = 0; i < px.length; i += 4) { hR[px[i]]++; hG[px[i+1]]++; hB[px[i+2]]++; }
+    for (let i = 0; i < px.length; i += 4) { hR[px[i]]++; hG[px[i + 1]]++; hB[px[i + 2]]++; }
 
     const smoothness = h => {
       let d = 0;
-      for (let i = 1; i < 256; i++) d += Math.abs(h[i] - h[i-1]);
+      for (let i = 1; i < 256; i++) d += Math.abs(h[i] - h[i - 1]);
       return d / (W * H);
     };
     const avg = (smoothness(hR) + smoothness(hG) + smoothness(hB)) / 3;
@@ -251,14 +313,25 @@ export async function runReverseImageSearch(file, onProgress) {
   const img = await loadImageBitmap(file);
   const dataUrl = await fileToDataUrl(file);
 
-  emit(1, 'Sending to Gemini Vision AI…');
+  emit(1, 'Sending to Vision AI…');
   let gemini = null;
   let geminiError = null;
+  let usedFallback = false;
+
+  // Try Gemini first
   try {
     gemini = await analyzeWithGemini(file);
-  } catch (e) {
-    geminiError = e.message;
-    console.error('Gemini failed:', e);
+  } catch (geminiErr) {
+    console.warn('Gemini failed, trying Groq fallback…', geminiErr.message);
+    // Auto-fallback to Groq Vision when Gemini is rate-limited or unavailable
+    try {
+      emit(1, 'Gemini quota reached — using Groq Vision fallback…');
+      gemini = await analyzeWithGroq(dataUrl);
+      usedFallback = true;
+    } catch (groqErr) {
+      geminiError = `Gemini: ${geminiErr.message} | Groq: ${groqErr.message}`;
+      console.error('Both vision APIs failed:', groqErr);
+    }
   }
 
   emit(2, 'Extracting image metadata…');

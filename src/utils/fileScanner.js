@@ -159,6 +159,8 @@ const MAGIC_SIGNATURES = [
   { type: 'html2',     category: 'text',       hex: 'TEXT:<html',        name: 'HTML Document',                extensions: ['html','htm'] },
   { type: 'json',      category: 'text',       hex: 'TEXT:{',            name: 'JSON Data',                    extensions: ['json'] },
   { type: 'json_arr',  category: 'text',       hex: 'TEXT:[',            name: 'JSON Array Data',              extensions: ['json'] },
+  { type: 'vbs',       category: 'executable', hex: 'TEXT:option explicit',name: 'VBScript File',              extensions: ['vbs','vbe'] },
+  { type: 'vbs2',      category: 'executable', hex: 'TEXT:on error resume next', name: 'VBScript File',        extensions: ['vbs','vbe'] },
 ];
 
 // ── Extension → allowed true categories (for mismatch) ───────
@@ -288,8 +290,18 @@ async function detectMagicBytes(file) {
 
   // -----------------------------------------------------------------
 
-  const detectedCategory = match ? match.category : 'unknown';
   const allowedCategories = EXTENSION_ALLOWED_CATEGORIES[claimedExtension] || [];
+
+  // If we couldn't match the magic bytes, guess the category based on the extension
+  let detectedCategory = match ? match.category : 'unknown';
+  let categoryInfo = FILE_CATEGORIES[detectedCategory] || FILE_CATEGORIES.unknown;
+  let detectedName = match ? match.name : 'Unknown / Unrecognised Binary';
+
+  if (!match && allowedCategories.length > 0) {
+    detectedCategory = allowedCategories[0];
+    categoryInfo = FILE_CATEGORIES[detectedCategory] || FILE_CATEGORIES.unknown;
+    detectedName = `${claimedExtension.toUpperCase()} File`;
+  }
 
   const isMismatch = match !== null &&
     allowedCategories.length > 0 &&
@@ -300,10 +312,10 @@ async function detectMagicBytes(file) {
 
   return {
     claimedExtension,
-    detectedType:        match ? match.type      : 'unknown',
-    detectedName:        match ? match.name       : 'Unknown / Unrecognised Binary',
+    detectedType:        match ? match.type : 'unknown',
+    detectedName,
     detectedCategory,
-    categoryInfo:        FILE_CATEGORIES[detectedCategory] || FILE_CATEGORIES.unknown,
+    categoryInfo,
     hexHeader:           hexHeader.slice(0, 24),   // show 12 bytes
     isMismatch,
     isDangerousExtension,
@@ -320,50 +332,106 @@ async function analyzeContent(file) {
   const findings = [];
   const ext = file.name.split('.').pop().toLowerCase();
 
-  // Read up to 1 MB
+  // Read up to 1 MB — try UTF-8 first (covers Notepad / VS Code saves),
+  // then also latin1 (maps every byte 1:1, covers binary content).
   const slice = file.slice(0, 1024 * 1024);
+
   let rawText = '';
   try {
-    rawText = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload  = (e) => resolve(e.target.result || '');
-      reader.onerror = ()  => resolve('');
-      reader.readAsText(slice, 'latin1');
-    });
-  } catch (_) { rawText = ''; }
+    // Read as ArrayBuffer to handle various encodings
+    const buffer = await slice.arrayBuffer();
+    const bytes  = new Uint8Array(buffer);
+
+    // 1. Try UTF-8 (Most common for scripts/text)
+    const utf8Text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    
+    // 2. Try UTF-16 LE (PowerShell default often includes this)
+    const utf16leText = new TextDecoder('utf-16le', { fatal: false }).decode(bytes);
+    
+    // 3. Try latin1 (1:1 byte mapping, catches binary/obfuscated strings)
+    const latinText = new TextDecoder('latin1', { fatal: false }).decode(bytes);
+
+    // Use whichever produced more printable ASCII content
+    const printable = (s) => (s.match(/[\x20-\x7e\t\r\n]/g) || []).length;
+    
+    const candidates = [
+      { text: utf8Text, score: printable(utf8Text) },
+      { text: utf16leText, score: printable(utf16leText) },
+      { text: latinText, score: printable(latinText) }
+    ];
+    
+    // Sort by printable score descending
+    candidates.sort((a, b) => b.score - a.score);
+    rawText = candidates[0].text;
+
+    // Special case: if it's mostly UTF-16 but the "best" was latin1 due to some noise,
+    // we still want to search multiple versions. But for simplicity, we'll use the best one.
+  } catch (err) { 
+    console.error('📄 [FileScanner] Error decoding content:', err);
+    rawText = ''; 
+  }
+
+  // Strip UTF-8 BOM if present
+  if (rawText.charCodeAt(0) === 0xFEFF) rawText = rawText.slice(1);
+
+  console.log('📄 [FileScanner] Content Analysis Debug:');
+  console.log('   File:', file.name, '| Size:', file.size, '| Extension:', ext);
+  console.log('   rawText length:', rawText.length);
+  console.log('   First 500 chars:', JSON.stringify(rawText.slice(0, 500)));
 
   const text = rawText.toLowerCase();
 
+  console.log('📄 [FileScanner] Starting analysis checks...');
+
   // — JavaScript inside PDFs / HTML
-  if (/\/javascript|\/js\b/.test(text) || /<script[\s>]/.test(text)) {
-    findings.push({ level: 'high', message: 'JavaScript code detected inside document', detail: 'Scripts embedded in documents can execute automatically when opened.' });
+  if (/\/javascript|\/js\b/i.test(text) || /<script[\s>]/i.test(text)) {
+    console.log('   HIT: JavaScript');
+    findings.push({ level: 'high', message: 'JavaScript code detected inside document', detail: 'Scripts embedded in documents can execute automatically.' });
   }
 
   // — Auto-open / auto-run actions (PDF)
   if (/\/openaction|\/aa\s*<<|autoopen|auto_open|auto-open/i.test(rawText)) {
+    console.log('   HIT: AutoAction');
     findings.push({ level: 'high', message: 'Auto-open action detected', detail: 'This file attempts to run code automatically when opened.' });
   }
 
   // — Macros in Office documents
   if (/vbaproject|macrosheet|auto_open|autoexec|workbook_open|document_open/i.test(rawText)) {
+    console.log('   HIT: Macros');
     findings.push({ level: 'high', message: 'Macro code detected (VBA / Office macro)', detail: 'Macros can download and execute malicious programs.' });
   }
 
-  // — PowerShell commands
-  if (/powershell|invoke-expression|iex\s*\(|downloadstring|webclient|invoke-webrequest|new-object\s+net/i.test(rawText)) {
-    findings.push({ level: 'high', message: 'PowerShell command found in file data', detail: 'Attackers use embedded PowerShell commands to install malware silently.' });
+  // — PowerShell and common obfuscation patterns
+  // Includes: iex, invoke-expression, downloadstring, webclient, bypass (execution policy), -enc/encodedcommand
+  const psRegex = /(powershell|invoke-expression|iex|downloadstring|webclient|invoke-webrequest|new-object|bypass|set-executionpolicy|-enc(odedcommand)?)\b/i;
+  // Also check for common `iex` obfuscation like `i`e`x` or vars
+  const iexObfRegex = /\b(i`?e`?x)\b|get-command\s+iex|&.*?(iex|invoke-expression)/i;
+
+  if (psRegex.test(text) || iexObfRegex.test(text)) {
+    console.log('   HIT: PowerShell / Script Execution');
+    findings.push({ level: 'high', message: 'PowerShell / Script execution command detected', detail: 'This file contains commands for running or downloading scripts, which is a common malware technique.' });
+  }
+
+  // — Obfuscated command line (suspicious backticks or string joins)
+  // Requires quotes for string joins (e.g. 'p'+'o'+'w') or multiple backticks to avoid binary false positives
+  if (/([a-z]`[a-z]){2,}/i.test(rawText) || /(['"][a-z]+['"]\s*\+\s*)+['"][a-z]+['"]/i.test(text)) {
+    console.log('   HIT: Obfuscation');
+    findings.push({ level: 'high', message: 'Command obfuscation detected', detail: 'The file uses backticks or character joining to hide its actual commands.' });
   }
 
   // — Suspicious remote payload links
-  if (/https?:\/\/[^\s"'<>]+\.(exe|bat|ps1|vbs|dll|msi|scr|hta|jar|dex)/i.test(rawText)) {
-    findings.push({ level: 'high', message: 'Embedded link to a remote executable', detail: 'The file contains URLs pointing to potentially malicious executables or scripts.' });
+  const payloadRegex = /https?:\/\/[^\s"'<>]+\.(exe|bat|ps1|vbs|dll|msi|scr|hta|jar|dex)/i;
+  if (payloadRegex.test(rawText)) {
+    console.log('   HIT: Payload Link');
+    findings.push({ level: 'high', message: 'Embedded link to a remote executable', detail: 'The file contains URLs pointing to potentially malicious payloads.' });
   }
 
   // — Suspicious hosting services
   const suspiciousDomains = ['pastebin.com', 'raw.githubusercontent.com', 'bit.ly', 'tinyurl', 'ngrok.io', 'serveo.net', 'transfer.sh', 'temp.sh', 'discord.com/api/webhooks'];
   for (const domain of suspiciousDomains) {
     if (text.includes(domain)) {
-      findings.push({ level: 'medium', message: `Reference to suspicious service: ${domain}`, detail: 'These services are frequently used by attackers to host payloads or exfiltrate data.' });
+      console.log('   HIT: Suspicious Domain:', domain);
+      findings.push({ level: 'medium', message: `Reference to suspicious service: ${domain}`, detail: 'These services are frequently used to host payloads.' });
       break;
     }
   }
@@ -372,43 +440,58 @@ async function analyzeContent(file) {
   const credKeywords = ['password', 'passwd', 'credential', 'login', 'username', 'secret', 'api_key', 'access_token', 'private_key', 'authorization'];
   const credFound = credKeywords.filter(k => text.includes(k));
   if (credFound.length >= 3) {
-    findings.push({ level: 'medium', message: `Credential-related keywords: ${credFound.slice(0, 5).join(', ')}`, detail: 'May indicate a credential harvesting or phishing document.' });
+    console.log('   HIT: Credentials x', credFound.length);
+    findings.push({ level: 'medium', message: `Credential keywords: ${credFound.slice(0, 3).join(', ')}`, detail: 'May indicate a phishing or credential harvesting file.' });
   }
 
   // — Large Base64 blob
-  if (/[A-Za-z0-9+/]{300,}={0,2}/.test(rawText)) {
-    findings.push({ level: 'medium', message: 'Large Base64-encoded payload found', detail: 'Attackers encode malware in Base64 to evade detection and decode/run it at runtime.' });
+  if (/[A-Za-z0-9+/]{300,}/.test(rawText)) {
+    console.log('   HIT: Base64 Blob');
+    findings.push({ level: 'medium', message: 'Large Base64-encoded payload found', detail: 'Attackers hide malware inside encoded strings.' });
   }
 
   // — Shell commands
-  if (/cmd\.exe|\/bin\/sh|\/bin\/bash|net user|reg add|schtasks|wscript|cscript|certutil|mshta\b/i.test(rawText)) {
-    findings.push({ level: 'high', message: 'System shell commands embedded in file', detail: 'Shell commands inside documents are a classic malware delivery technique.' });
+  const shellRegex = /cmd\.exe|\/bin\/sh|\/bin\/bash|net user|reg add|schtasks|wscript|cscript|certutil|bitsadmin|mshta|sc\.exe|netsh|at\.exe/i;
+  if (shellRegex.test(text)) {
+    console.log('   HIT: Shell Command');
+    findings.push({ level: 'high', message: 'System shell commands embedded in file', detail: 'The file contains references to system administration tools commonly exploited by attackers.' });
   }
 
-  // — Executables inside archives (inspect filename list in zip local header)
+  // — Executables inside archives
   if (['zip','rar','7z','jar','apk'].includes(ext)) {
     if (/\.exe|\.bat|\.dll|\.scr|\.vbs|\.ps1|\.hta/i.test(rawText)) {
-      findings.push({ level: 'medium', message: 'Archive contains executable files', detail: 'Malware is frequently distributed as executables inside compressed archives.' });
+      console.log('   HIT: Archive Payload');
+      findings.push({ level: 'medium', message: 'Archive contains executable files', detail: 'Malware is often hidden inside compressed archives.' });
     }
   }
 
   // — Suspicious iframe / redirect in HTML
   if (['html','htm','svg'].includes(ext)) {
     if (/<iframe[^>]+src\s*=/i.test(rawText) || /window\.location\s*=/i.test(rawText)) {
-      findings.push({ level: 'medium', message: 'HTML contains hidden iframe or redirect', detail: 'Phishing pages use iframes and redirects to secretly load malicious content.' });
+      console.log('   HIT: HTML Redirect');
+      findings.push({ level: 'medium', message: 'HTML contains hidden iframe or redirect', detail: 'Phishing pages use redirects to load malicious content.' });
     }
   }
 
-  // — Keylogger / screen capture APIs in scripts
-  if (/getasynckeystate|setwindowshookex|recordscreen|imagecapture|getcursorpos/i.test(rawText)) {
-    findings.push({ level: 'high', message: 'Keylogger or screen-capture API reference found', detail: 'These Windows API calls are used by keyloggers and spyware.' });
+  // — Keylogger / screen capture APIs
+  if (/getasynckeystate|setwindowshookex|recordscreen|imagecapture|getcursorpos/i.test(text)) {
+    console.log('   HIT: Keylogger API');
+    findings.push({ level: 'high', message: 'Spyware API reference found', detail: 'These API calls are used by keyloggers and spyware.' });
   }
 
   // — Known ransomware strings
-  if (/your files have been encrypted|bitcoin|pay the ransom|\.onion|decryption key/i.test(rawText)) {
-    findings.push({ level: 'high', message: 'Ransomware-related text found', detail: 'File contains strings commonly seen in ransomware notes or droppers.' });
+  if (/your files have been encrypted|bitcoin|pay the ransom|\.onion|decryption key/i.test(text)) {
+    console.log('   HIT: Ransomware');
+    findings.push({ level: 'high', message: 'Ransomware-related text found', detail: 'File contains strings commonly seen in ransomware notes.' });
   }
 
+  // — Suspicious obfuscated JS (e.g. from phish kits)
+  if (/(eval|atob|btoa|unescape|decodeURIComponent)\s*\(.*?\s*[a-z0-9+/]{100,}/i.test(text)) {
+    console.log('   HIT: Obfuscated JS');
+    findings.push({ level: 'high', message: 'Obfuscated JavaScript detected', detail: 'Malicious scripts often use encoding to hide their primary payload.' });
+  }
+
+  console.log('📄 [FileScanner] Analysis complete. Findings found:', findings.length);
   return findings;
 }
 
@@ -472,39 +555,54 @@ function calculateScore(magicResult, contentFindings, vtResult) {
   let score = 100;
   const deductions = [];
 
+  // Mismatch is a huge red flag
   if (magicResult.isMismatch) {
-    score -= 35;
-    deductions.push({ reason: 'Extension mismatch — disguised file type', points: 35 });
+    score -= 50;
+    deductions.push({ reason: 'File extension mismatch (Possible disguise)', points: 50 });
   }
 
-  if (magicResult.isDangerousExtension) {
-    score -= 20;
-    deductions.push({ reason: 'Dangerous/executable file extension', points: 20 });
-  }
-
-  if (!magicResult.isMismatch && magicResult.isDangerousTrueType && !magicResult.isDangerousExtension) {
-    // True type is executable but extension is innocent-looking — suspicious
+  // Dangerous original file type
+  if (magicResult.isDangerousTrueType && !magicResult.isMismatch) {
+    // If it's a known dangerous type (exe, sh) but not a mismatch (it's named .exe)
     score -= 30;
-    deductions.push({ reason: 'True file type is executable despite benign extension', points: 30 });
+    deductions.push({ reason: 'High-risk executable format', points: 30 });
+  } else if (magicResult.isDangerousTrueType && magicResult.isMismatch) {
+    // Already deducted 50, let's add another 20 for the type being high risk
+    score -= 20;
+    deductions.push({ reason: 'Disguised high-risk executable content', points: 20 });
   }
 
+  // Deduct based on content findings
   for (const finding of contentFindings) {
-    const pts = finding.level === 'high' ? 20 : finding.level === 'medium' ? 10 : 5;
+    // High risk = 40 pts, Medium = 20 pts, Low = 10 pts
+    const pts = finding.level === 'high' ? 40 : finding.level === 'medium' ? 20 : 10;
     score -= pts;
     deductions.push({ reason: finding.message, points: pts });
   }
 
+  // VirusTotal Findings (Strong signal)
   if (vtResult && !vtResult.error && vtResult.found) {
-    const malRatio  = (vtResult.malicious + vtResult.suspicious) / Math.max(vtResult.totalEngines, 1);
-    const vtPts     = Math.round(malRatio * 50);
-    if (vtPts > 0) {
+    if (vtResult.malicious > 0) {
+      // 30 base + progressive based on engine count
+      const vtPts = 30 + Math.min(vtResult.malicious * 10, 70); 
       score -= vtPts;
-      deductions.push({ reason: `VirusTotal: ${vtResult.malicious} engines flagged as malicious`, points: vtPts });
+      deductions.push({ reason: `VirusTotal: ${vtResult.malicious} engines flagged this as malicious`, points: vtPts });
+    } else if (vtResult.suspicious > 0) {
+      score -= 20;
+      deductions.push({ reason: 'VirusTotal: flagged as suspicious', points: 20 });
     }
   }
 
+  // Final range normalization
   score = Math.max(0, Math.min(100, score));
-  const verdict = score >= 75 ? 'safe' : score >= 45 ? 'suspicious' : 'dangerous';
+
+  // Verdict thresholds
+  // 85 - 100: Safe
+  // 55 - 84:  Suspicious
+  // 0  - 54:  Dangerous
+  let verdict = 'safe';
+  if (score < 55) verdict = 'dangerous';
+  else if (score < 85) verdict = 'suspicious';
 
   return { score, verdict, deductions };
 }
